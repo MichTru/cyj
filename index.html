@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CYJ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Percorso verticale a blocchi colorati, una colonna mobile-first; lezioni e casi a schermo pieno */
+:root{
+  --bg:#EEF1F7;
+  --surface:#FFFFFF;
+  --ink:#141A2E;
+  --muted:#5B6380;
+  --line:#D9DEEA;
+  --accent:#FF4F2E;
+  --ok:#159A5B;
+  --ok-bg:#DDF5E8;
+  --ko:#D93545;
+  --ko-bg:#FBE1E4;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1222;--surface:#181E33;--ink:#EEF1FA;--muted:#9AA3C2;--line:#2A3250;
+    --accent:#FF6A4D;--ok:#3DD68C;--ok-bg:#123828;--ko:#FF6B7A;--ko-bg:#3D1820;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1222;--surface:#181E33;--ink:#EEF1FA;--muted:#9AA3C2;--line:#2A3250;
+  --accent:#FF6A4D;--ok:#3DD68C;--ok-bg:#123828;--ko:#FF6B7A;--ko-bg:#3D1820;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 110px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0 22px}
+.brand{font-family:var(--display);font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.brand span{color:var(--accent)}
+.sync{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.pill{border:0;border-radius:999px;padding:12px 20px;font-weight:700;background:var(--accent);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .08s}
+.pill:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.pill.ghost{background:var(--surface);color:var(--ink);box-shadow:0 0 0 2px var(--line) inset}
+.pill.wide{width:100%;padding:16px}
+.pill.small{padding:8px 14px;font-size:15px;box-shadow:0 0 0 2px var(--line) inset;background:transparent;color:var(--ink)}
+.pill[disabled]{opacity:.45;cursor:default}
+
+.next{display:flex;gap:14px;align-items:center;background:var(--ink);color:var(--bg);border-radius:22px;padding:18px;margin-bottom:26px}
+.next .t{flex:1;min-width:0}
+.next small{display:block;opacity:.7;font-size:14px}
+.next strong{font-family:var(--display);font-size:21px;display:block;line-height:1.15}
+.next .pill{flex:none}
+
+.units{display:grid;gap:18px}
+.unit{border-radius:24px;background:var(--surface);overflow:hidden;box-shadow:0 1px 0 var(--line)}
+.unit-head{background:var(--c);color:#fff;padding:18px 18px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.unit-head h2{font-size:24px;font-weight:800}
+.unit-head .bar{width:64px;height:8px;border-radius:9px;background:rgba(255,255,255,.35);flex:none;overflow:hidden}
+.unit-head .bar i{display:block;height:100%;background:#fff;border-radius:9px}
+.lessons{display:grid;gap:4px;padding:12px}
+.lesson-btn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:transparent;padding:9px 6px;border-radius:16px}
+.lesson-btn:hover{background:var(--bg)}
+.dot{width:46px;height:46px;border-radius:50%;flex:none;display:grid;place-items:center;border:3px solid var(--c);color:var(--c)}
+.dot svg{width:22px;height:22px}
+.done .dot{background:var(--c);color:#fff}
+.lesson-btn b{font-weight:600;font-size:17px;line-height:1.25;flex:1}
+.lesson-btn.caso{border-top:1px dashed var(--line);border-radius:0 0 16px 16px;margin-top:4px;padding-top:13px}
+.lesson-btn.caso .dot{border-radius:14px}
+.lesson-btn .score{font-family:var(--display);font-weight:800;color:var(--c);font-size:18px}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));z-index:5}
+nav.tabs .in{display:flex;gap:4px;max-width:560px;width:100%}
+nav.tabs button{flex:1;border:0;background:transparent;border-radius:14px;padding:10px 4px;font-weight:700;font-size:15px;color:var(--muted)}
+nav.tabs button[aria-current="page"]{background:var(--bg);color:var(--ink)}
+nav.tabs .badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-left:5px;vertical-align:middle}
+
+.section-title{font-size:30px;font-weight:800;margin:6px 0 18px}
+.card{background:var(--surface);border-radius:20px;padding:18px;box-shadow:0 1px 0 var(--line)}
+.stack{display:grid;gap:12px}
+.empty{color:var(--muted);text-align:center;padding:40px 10px}
+.rev-q{font-weight:600}
+.rev-q small{display:block;color:var(--muted);font-weight:500;font-size:14px;margin-bottom:2px}
+
+.search{width:100%;padding:14px 16px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;margin-bottom:14px}
+.term{padding:14px 0;border-bottom:1px solid var(--line)}
+.term:last-child{border-bottom:0}
+.term h3{font-size:19px;margin-bottom:3px}
+.term p{margin:0;color:var(--muted)}
+.sr{position:absolute;left:-9999px}
+
+/* Tutor */
+.chat{display:grid;gap:12px;margin-bottom:16px}
+.msg{max-width:88%;padding:12px 15px;border-radius:18px;white-space:pre-wrap;line-height:1.45}
+.msg.me{justify-self:end;background:var(--ink);color:var(--bg);border-bottom-right-radius:6px}
+.msg.ai{justify-self:start;background:var(--surface);border-bottom-left-radius:6px;box-shadow:0 1px 0 var(--line)}
+.sugg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.composer{position:sticky;bottom:78px;display:flex;gap:8px;background:var(--bg);padding:8px 0}
+.composer textarea{flex:1;resize:none;min-height:52px;max-height:160px;padding:14px 16px;border-radius:18px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit}
+.composer .pill{align-self:flex-end}
+
+/* Player */
+.player{position:fixed;inset:0;background:var(--bg);z-index:10;display:flex;flex-direction:column}
+.player[hidden]{display:none}
+.p-top{display:flex;align-items:center;gap:14px;padding:14px 16px;max-width:600px;width:100%;margin:0 auto}
+.x{border:0;background:transparent;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none}
+.x:hover{background:var(--line)}
+.x svg{width:22px;height:22px}
+.prog{flex:1;height:14px;border-radius:9px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--c,var(--accent));border-radius:9px;transition:width .3s}
+.p-body{flex:1;overflow-y:auto;padding:8px 16px 20px}
+.p-in{max-width:560px;margin:0 auto}
+.tag{display:inline-block;background:var(--c);color:#fff;font-weight:700;font-size:13px;padding:4px 12px;border-radius:999px;margin-bottom:14px;letter-spacing:.02em}
+.p-in h2{font-size:30px;font-weight:800;margin-bottom:14px}
+.p-in p.txt{font-size:19px;line-height:1.55;margin:0 0 16px;max-width:62ch}
+.ex{border-left:5px solid var(--c);background:var(--surface);border-radius:0 16px 16px 0;padding:14px 16px;font-size:17px}
+.ex b{display:block;font-size:14px;color:var(--c);margin-bottom:2px}
+.explain{margin-top:16px}
+.ai-box{background:var(--surface);border-radius:16px;padding:14px 16px;margin-top:12px;white-space:pre-wrap;box-shadow:0 0 0 2px var(--line) inset}
+.q{font-family:var(--display);font-size:25px;font-weight:600;margin:4px 0 20px;line-height:1.2}
+.opts{display:grid;gap:10px}
+.opts.vf{grid-template-columns:1fr 1fr}
+.opt{width:100%;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:18px;padding:15px 16px;font-size:17px;font-weight:500;box-shadow:0 3px 0 var(--line);line-height:1.35}
+.opts.vf .opt{text-align:center;font-weight:700;font-size:19px;padding:20px}
+.opt:hover:not([disabled]){border-color:var(--c)}
+.opt.sel-ok{border-color:var(--ok);background:var(--ok-bg);box-shadow:0 3px 0 var(--ok)}
+.opt.sel-ko{border-color:var(--ko);background:var(--ko-bg);box-shadow:0 3px 0 var(--ko)}
+.opt[disabled]{cursor:default}
+.num{display:flex;align-items:center;gap:10px}
+.num input{flex:1;min-width:0;font:inherit;font-family:var(--display);font-size:30px;font-weight:600;padding:14px 16px;border-radius:18px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+.num input.ok{border-color:var(--ok);background:var(--ok-bg)}
+.num input.ko{border-color:var(--ko);background:var(--ko-bg)}
+.num span{font-family:var(--display);font-size:28px;font-weight:600;color:var(--muted)}
+.p-foot{padding:14px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--surface)}
+.p-foot .in{max-width:560px;margin:0 auto;display:grid;gap:12px}
+.p-foot.ok{background:var(--ok-bg);border-color:transparent}
+.p-foot.ko{background:var(--ko-bg);border-color:transparent}
+.fb strong{font-family:var(--display);font-size:22px;display:block}
+.p-foot.ok .fb strong{color:var(--ok)}
+.p-foot.ko .fb strong{color:var(--ko)}
+.fb p{margin:4px 0 0;font-size:16px}
+.p-foot.ok .pill{background:var(--ok)}
+.p-foot.ko .pill{background:var(--ko)}
+.endbox{text-align:center;padding-top:40px}
+.endbox .big{width:110px;height:110px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;margin:0 auto 22px}
+.endbox .big svg{width:54px;height:54px}
+.endbox h2{font-size:32px}
+.endbox p{color:var(--muted);font-size:18px}
+
+/* Caso pratico */
+.brief{font-size:19px;margin:0 0 10px}
+.task{font-weight:700;font-size:18px;margin:0 0 14px}
+.answer{width:100%;min-height:200px;resize:vertical;padding:16px;border-radius:18px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;line-height:1.5}
+.eval{display:grid;gap:14px;margin-top:18px}
+.vote{display:flex;align-items:baseline;gap:6px;font-family:var(--display)}
+.vote b{font-size:56px;font-weight:800;color:var(--c);line-height:1}
+.vote span{font-size:22px;color:var(--muted);font-weight:600}
+.eval h3{font-size:18px;margin-bottom:6px}
+.eval ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.model{background:var(--surface);border-radius:16px;padding:16px;box-shadow:0 0 0 2px var(--line) inset}
+.model p{margin:0}
+.thinking{color:var(--muted);font-style:italic}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<nav class="tabs" aria-label="Sezioni">
+  <div class="in">
+    <button id="tab-percorso" data-view="percorso">Percorso</button>
+    <button id="tab-ripasso" data-view="ripasso">Ripasso</button>
+    <button id="tab-tutor" data-view="tutor" hidden>Tutor</button>
+    <button id="tab-glossario" data-view="glossario">Glossario</button>
+  </div>
+</nav>
+
+<div class="player" id="player" hidden>
+  <div class="p-top">
+    <button class="x" id="close" aria-label="Chiudi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="prog"><i id="progbar"></i></div>
+  </div>
+  <div class="p-body" id="pscroll"><div class="p-in" id="pbody"></div></div>
+  <div class="p-foot" id="pfoot"><div class="in" id="pfootin"></div></div>
+</div>
+
+<script>
+const UNITS = [
+{id:"basi",title:"Basi del marketing",c:"#FF4F2E",lessons:[
+ {id:"basi-target",title:"Target e buyer persona",cards:[
+  {h:"Chi è il target",t:"Il target è il gruppo di persone a cui ti rivolgi. Più è preciso, più il messaggio colpisce, perché chi lo legge si riconosce.",ex:"“Donne 30-55 anni tra Lugo e Faenza che cercano un regalo curato” funziona molto meglio di “tutti”."},
+  {h:"Buyer persona",t:"È il ritratto del cliente tipo: età, lavoro, abitudini, problemi, obiezioni, dove passa il tempo online. Si costruisce parlando con i clienti veri, non a fantasia.",ex:"Chiedi al titolare: quali domande vi fanno sempre? Cosa frena chi entra e non compra?"},
+  {h:"Prima il problema, poi il prodotto",t:"Le persone non comprano un parquet: comprano una casa più bella e un lavoro senza pensieri. Ogni messaggio parte dal problema che risolvi.",ex:"Per un colorificio che serve imprese: “Ordini entro le 10, materiale pronto in giornata: il cantiere non si ferma.”"}],
+ quiz:[
+  {q:"Quale target è definito meglio?",o:["Coppie 30-45 anni in provincia di Ravenna che ristrutturano casa","Tutti quelli che hanno una casa","Persone interessate all'arredamento","Chi segue pagine di design"],e:"Ha età, zona e una situazione concreta: puoi scrivere un messaggio pensato proprio per loro."},
+  {q:"Da dove prendi le informazioni migliori per una buyer persona?",o:["Dalle domande e dalle obiezioni dei clienti veri","Dalle statistiche nazionali","Da come immagini il cliente","Dai follower dei concorrenti"],e:"I clienti reali ti danno parole, dubbi e motivazioni che puoi usare direttamente nei testi."},
+  {q:"Cos'è un'obiezione?",o:["Un motivo per cui il cliente esita a comprare","Una recensione negativa","Un commento offensivo","Una richiesta di sconto"],e:"“Costa troppo”, “non ho tempo”, “non mi fido”: i contenuti migliori rispondono alle obiezioni prima che vengano fatte."},
+  {q:"Quale messaggio parte dal problema del cliente?",o:["Posa in 5 giorni: rientri in casa senza settimane di cantiere","Parquet di alta qualità","Siamo sul mercato dal 1985","Seguici su Instagram"],e:"Parla di una preoccupazione concreta (il disagio dei lavori) e la risolve."}]},
+ {id:"basi-funnel",title:"Posizionamento e funnel",cards:[
+  {h:"Posizionamento",t:"È il posto che occupi nella testa del cliente rispetto ai concorrenti. Deve stare in una frase: per chi sei, cosa fai, quale beneficio dai e perché sei diverso dalle alternative.",ex:"“Per chi ristruttura in Bassa Romagna, il parquettista che consegna a data fissa con preventivo bloccato.”"},
+  {h:"Proposta di valore",t:"È il motivo concreto per scegliere te. Deve essere specifica e verificabile. “Qualità e professionalità” lo scrivono tutti, quindi non distingue nessuno.",ex:"“Preventivo gratuito entro 24 ore e prezzo che non cambia” è una promessa che il cliente può controllare."},
+  {h:"Il funnel",t:"È il percorso del cliente: consapevolezza (ti scopre), considerazione (ti valuta), conversione (compra, chiama, prenota), fidelizzazione (torna e ti consiglia). Ogni contenuto e ogni campagna serve una fase precisa.",ex:"Un Reel virale lavora sulla consapevolezza, le recensioni sulla considerazione, un'offerta con scadenza sulla conversione."}],
+ quiz:[
+  {q:"Quale proposta di valore è più forte?",o:["Preventivo gratuito in 24 ore e prezzo bloccato","Qualità e professionalità dal 1990","I migliori della Romagna","Passione per il nostro lavoro"],e:"È specifica e verificabile. Le altre sono frasi che chiunque può scrivere."},
+  {q:"Un Reel che fa scoprire una boutique a chi non la conosce serve soprattutto a:",o:["Consapevolezza","Conversione","Fidelizzazione","Considerazione"],e:"È la parte alta del funnel: farsi conoscere da persone nuove."},
+  {q:"Un'anteprima della nuova collezione riservata alle clienti abituali lavora su:",o:["Fidelizzazione","Consapevolezza","Considerazione","Nessuna fase"],e:"Premia chi ha già comprato e lo fa tornare."},
+  {q:"Perché “per tutti” è un cattivo posizionamento?",o:["Perché nessuno si riconosce nel messaggio","Perché costa di più in pubblicità","Perché le piattaforme lo vietano","Perché fa perdere follower"],e:"Un messaggio che vuole parlare a tutti non colpisce nessuno in particolare."}]}
+]},
+{id:"strategia",title:"Strategia per un cliente",c:"#3554F5",lessons:[
+ {id:"str-analisi",title:"Analisi e obiettivi",cards:[
+  {h:"Si parte dall'analisi",t:"Prima di proporre qualcosa guarda il sito attuale, i profili social, la scheda Google con le recensioni e i concorrenti della zona. Una SWOT (punti di forza, debolezze, opportunità, minacce) ti dà il quadro in una pagina.",ex:"Forze e debolezze sono interne all'attività; opportunità e minacce arrivano da fuori."},
+  {h:"Obiettivi SMART",t:"Specifici, Misurabili, Raggiungibili, Rilevanti e con una Scadenza. “Più visibilità” non è un obiettivo. “30 richieste di preventivo al mese entro marzo” sì.",ex:"Con un obiettivo così sai sempre se la strategia sta funzionando."},
+  {h:"KPI",t:"Sono i numeri che dicono se stai raggiungendo l'obiettivo. Pochi e legati al business: richieste, chiamate, prenotazioni, vendite. Follower e like aiutano, ma da soli non pagano le bollette.",ex:"Per un'agenzia immobiliare: richieste di valutazione casa e appuntamenti fissati."}],
+ quiz:[
+  {q:"Quale obiettivo è SMART?",o:["20 prenotazioni di prova al mese entro giugno","Diventare famosi su Instagram","Migliorare l'immagine del negozio","Pubblicare di più"],e:"È specifico, misurabile e ha una scadenza."},
+  {q:"Nella SWOT, un nuovo quartiere residenziale vicino al negozio è:",o:["Un'opportunità","Un punto di forza","Una debolezza","Una minaccia"],e:"È un fattore esterno favorevole. Forze e debolezze riguardano l'attività stessa."},
+  {q:"Per un'impresa edile, quale KPI conta di più?",o:["Richieste di preventivo","Numero di follower","Like medi per post","Visualizzazioni delle storie"],e:"È il numero più vicino al fatturato."},
+  {q:"Cosa controlli per primo quando analizzi un'attività locale?",o:["Scheda Google, recensioni, sito e social attuali","Il budget pubblicitario dei concorrenti","Gli hashtag più usati al mondo","Solo il logo"],e:"È la sua presenza online di oggi: il punto da cui parti per migliorare."}]},
+ {id:"str-piano",title:"Piano editoriale",cards:[
+  {h:"Pilastri di contenuto",t:"Sono 3-5 temi fissi su cui ruota la comunicazione. Evitano il “cosa pubblico oggi?” e rendono il profilo riconoscibile.",ex:"Per una boutique: novità, consigli di stile, dietro le quinte, clienti e recensioni."},
+  {h:"Costanza prima della quantità",t:"Il piano editoriale fissa cosa, dove e quando pubblicare. Una frequenza sostenibile tutto l'anno batte un mese pieno seguito dal silenzio.",ex:"Tre contenuti a settimana più qualche storia al giorno sono un ritmo realistico per un negozio."},
+  {h:"Il mix giusto",t:"Alterna contenuti che fanno scoprire, contenuti che creano fiducia e contenuti che chiedono un'azione. Solo vendita stanca; solo intrattenimento non porta clienti.",ex:"Reel per farsi trovare, caroselli utili e recensioni per la fiducia, un'offerta chiara per far muovere le persone."}],
+ quiz:[
+  {q:"Cosa sono i pilastri di contenuto?",o:["I temi fissi su cui ruota la comunicazione","I post con più like","Gli orari di pubblicazione","I collaboratori del cliente"],e:"Danno una struttura al piano editoriale."},
+  {q:"Cosa funziona meglio per un piccolo negozio?",o:["Tre contenuti a settimana per tutto l'anno","Un post al giorno per un mese e poi niente","Pubblicare solo quando c'è una promozione","Solo storie, mai post"],e:"La costanza costruisce abitudine nel pubblico e segnali positivi per le piattaforme."},
+  {q:"Un carosello “5 errori quando scegli il colore delle pareti” serve soprattutto a:",o:["Creare fiducia e mostrare competenza","Vendere subito","Fidelizzare chi ha già comprato","Aumentare la frequenza"],e:"Contenuti utili vengono salvati e posizionano il cliente come esperto."},
+  {q:"Chi approva i contenuti prima che escano?",o:["Si decide con il cliente all'inizio, con tempi chiari","Nessuno, si pubblica e basta","Chi li vede per primo","La piattaforma"],e:"Un flusso di approvazione scritto evita ritardi e discussioni."}]}
+]},
+{id:"social",title:"Social media",c:"#D6247F",lessons:[
+ {id:"soc-algo",title:"Come Instagram sceglie cosa mostrare",cards:[
+  {h:"Non c'è un solo algoritmo",t:"Instagram usa sistemi di ranking diversi per Feed, Reels, Storie ed Esplora, e ognuno pesa i segnali in modo diverso.",ex:"Le Storie dipendono molto dal rapporto con chi ti segue; Reels ed Esplora puntano a farti scoprire da persone nuove."},
+  {h:"I tre segnali principali",t:"Il capo di Instagram, Adam Mosseri, ha indicato come segnali più importanti il tempo di visione, i like in rapporto alla copertura e le condivisioni in DM in rapporto alla copertura. I like contano di più per raggiungere chi ti segue, le condivisioni per raggiungere chi non ti segue.",ex:"Un contenuto che le persone mandano agli amici (“guarda, questo è il negozio di cui ti parlavo”) viaggia lontano."},
+  {h:"Originalità",t:"Instagram premia i contenuti originali e riduce la distribuzione di quelli ripubblicati da altri account. Un video vero girato col telefono in negozio vale più di un contenuto preso altrove.",ex:"Per un artigiano: il lavoro ripreso dal vivo, con la sua voce, è il contenuto più originale che esista."}],
+ quiz:[
+  {q:"Per far arrivare un Reel a chi non segue il profilo, quale segnale conta di più?",o:["Le condivisioni in DM","I like dei follower","Il numero di hashtag","L'orario di pubblicazione"],e:"Mosseri ha detto che le condivisioni pesano di più per raggiungere i non follower."},
+  {q:"Quale affermazione è corretta?",o:["Feed, Reels, Storie ed Esplora hanno sistemi di ranking diversi","Instagram ha un unico algoritmo uguale per tutto","Conta solo il numero di follower","Le Storie vengono mostrate in ordine casuale"],e:"Ogni parte dell'app è usata in modo diverso, quindi ha il suo sistema."},
+  {q:"Cosa rischi ripubblicando spesso video di altri account?",o:["Meno distribuzione","Più copertura","Nessun effetto","Il blocco immediato dell'account"],e:"Instagram favorisce chi crea e riduce la spinta ai contenuti ripubblicati."},
+  {q:"Cosa misura il tempo di visione?",o:["Quanto a lungo le persone guardano il contenuto","Quante persone lo vedono","Quante volte viene condiviso","Quanti commenti riceve"],e:"Un video guardato fino in fondo, o rivisto, dice alla piattaforma che vale la pena mostrarlo."}]},
+ {id:"soc-formati",title:"Formati e piattaforme",cards:[
+  {h:"Reels",t:"È il formato per farsi scoprire. Verticale 9:16, gancio nei primi secondi e testo a schermo, perché molti guardano senza audio.",ex:"Un prima e dopo di 12 secondi con la scritta “40 anni di parquet, 3 giorni di lavoro”."},
+  {h:"Caroselli e storie",t:"I caroselli spiegano e vengono salvati: ottimi per consigli, guide e passaggi di un lavoro. Le storie tengono il contatto con chi già ti segue: sondaggi, domande, dietro le quinte.",ex:"Carosello: “Come scegliere la tinta per un soggiorno esposto a nord”. Storia: sondaggio tra due colori."},
+  {h:"Scegliere la piattaforma",t:"Instagram e Facebook coprono la maggior parte delle attività locali, e Facebook resta forte con il pubblico sopra i 45 anni. TikTok funziona per attività molto visive con pubblico giovane, LinkedIn per i servizi alle aziende. Non serve essere ovunque.",ex:"Meglio due canali curati bene che cinque lasciati a metà."}],
+ quiz:[
+  {q:"Proporzioni di un Reel?",o:["Verticale 9:16","Quadrato 1:1","Orizzontale 16:9","Verticale 4:5"],e:"Il 9:16 occupa tutto lo schermo del telefono."},
+  {q:"Perché mettere il testo a schermo nei video?",o:["Molti guardano senza audio","Lo richiede Instagram","Aumenta la risoluzione","Sostituisce la didascalia"],e:"Il testo fa capire il video anche a volume zero."},
+  {q:"Uno studio di consulenza che cerca clienti aziende dove dovrebbe puntare?",o:["LinkedIn","TikTok","Pinterest","Twitch"],e:"È il social dove si trovano titolari e responsabili d'azienda."},
+  {q:"Quale contenuto è perfetto per un carosello?",o:["Il prima e dopo di una levigatura, foto per foto","Una diretta di un'ora","Un sondaggio veloce","Un conto alla rovescia"],e:"Il carosello racconta una sequenza che si sfoglia e si salva."}]}
+]},
+{id:"copy",title:"Contenuti e copy",c:"#F29D00",lessons:[
+ {id:"copy-gancio",title:"Il gancio e la struttura",cards:[
+  {h:"Il gancio",t:"Nei primi 1-2 secondi chi scorre decide se restare. Apri con il risultato, una domanda precisa o un errore comune.",ex:"“Questo pavimento sembrava da buttare. Guarda adesso.” ferma molto più di “Ciao a tutti, oggi vi parlo di…”"},
+  {h:"AIDA",t:"Attenzione, Interesse, Desiderio, Azione. È la scaletta classica di un annuncio o di un post che vende: catturi, incuriosisci, fai desiderare, chiedi di agire.",ex:"Attenzione: il prima e dopo. Interesse: in quanti giorni. Desiderio: la casa finita. Azione: “Chiedi il sopralluogo”."},
+  {h:"PAS",t:"Problema, Agitazione, Soluzione. Nomini il problema, mostri cosa costa lasciarlo così, presenti la soluzione. Funziona molto bene per i servizi.",ex:"“Le pareti di casa si macchiano subito? Ogni ritocco si vede. Con una pittura lavabile le pulisci con una spugna.”"}],
+ quiz:[
+  {q:"Quale apertura di Reel funziona meglio?",o:["Questo pavimento sembrava da buttare. Guarda adesso.","Buongiorno a tutti, oggi vi parlo di parquet","Logo animato di 5 secondi","Seguici per altri video"],e:"Mostra subito una promessa e crea curiosità."},
+  {q:"Cosa indica la A finale di AIDA?",o:["Azione","Attenzione","Analisi","Acquisto ripetuto"],e:"Ogni struttura che vende si chiude con una richiesta d'azione."},
+  {q:"Nella formula PAS, la fase di agitazione serve a:",o:["Mostrare cosa costa lasciare il problema irrisolto","Presentare il prezzo","Raccontare la storia dell'azienda","Chiedere di seguire il profilo"],e:"Rende il problema concreto prima di offrire la soluzione."},
+  {q:"Dove va il gancio in un video?",o:["Nei primi 1-2 secondi","A metà video","Alla fine","Nella didascalia"],e:"È lì che si decide se il video verrà guardato."}]},
+ {id:"copy-cta",title:"Call to action e tono di voce",cards:[
+  {h:"Call to action",t:"Ogni contenuto che vende si chiude con un'azione sola e chiara. Più azioni insieme confondono e alla fine non se ne fa nessuna.",ex:"“Scrivici PROVA in DM e ti fissiamo l'appuntamento.”"},
+  {h:"Tono di voce",t:"È il modo in cui il brand parla: formale o amichevole, tecnico o semplice, ironico o serio. Si decide una volta e si tiene uguale su sito, social e annunci.",ex:"Una boutique di intimo: elegante e complice. Uno studio legale: chiaro e rassicurante."},
+  {h:"Scrivere per il telefono",t:"Frasi corte, un'idea per riga, parole concrete. Le prime righe della didascalia sono le uniche che si vedono senza toccare “altro”, quindi lì va il punto più forte.",ex:"Prima riga: “3 giorni, zero polvere in casa.” Poi i dettagli."}],
+ quiz:[
+  {q:"Quale call to action è migliore?",o:["Scrivici PROVA in DM e ti fissiamo l'appuntamento","Contattaci, seguici, condividi e visita il sito","Grazie per l'attenzione","Se vuoi, magari, fatti sentire"],e:"Una sola azione, precisa e facile da fare."},
+  {q:"Perché il tono di voce deve restare costante?",o:["Rende il brand riconoscibile ovunque","Lo impone Meta","Fa risparmiare sulle inserzioni","Non serve che sia costante"],e:"Se cambia ogni volta, il pubblico non capisce chi ha davanti."},
+  {q:"Cosa metti nella prima riga della didascalia?",o:["Il punto più interessante, perché è l'unica che si vede","Gli hashtag","I saluti","Il numero di telefono"],e:"Se la prima riga non incuriosisce, nessuno tocca “altro”."},
+  {q:"Quale tono è più adatto a uno studio legale?",o:["Chiaro e rassicurante, senza gergo","Ironico, con meme","Molto tecnico, con citazioni di legge","Urlato, in maiuscolo"],e:"Chi cerca un avvocato vuole capire e sentirsi in buone mani."}]}
+]},
+{id:"meta",title:"Meta Ads",c:"#0E9F8E",lessons:[
+ {id:"meta-struttura",title:"Com'è fatta una campagna",cards:[
+  {h:"Tre livelli",t:"Campagna (l'obiettivo), gruppo di inserzioni (pubblico, budget, posizionamenti, durata) e inserzione (creatività e testo). Si gestisce tutto da Gestione inserzioni.",ex:"Con il budget Advantage+ della campagna, il budget si imposta sulla campagna e Meta lo distribuisce tra i gruppi."},
+  {h:"L'obiettivo giusto",t:"Meta ottimizza per l'obiettivo che scegli: notorietà, traffico, interazione, contatti, promozione dell'app, vendite. Se vuoi richieste scegli Contatti: con Traffico ottieni clic, non clienti.",ex:"Per un'agenzia immobiliare: obiettivo Contatti con un modulo “Quanto vale la tua casa?”."},
+  {h:"Il pulsante Metti in evidenza",t:"Sponsorizzare un post dall'app è comodo, ma dà meno controllo su obiettivi, pubblico e misurazione rispetto a Gestione inserzioni. Va bene per piccoli test.",ex:"Per un cliente vero, lavora sempre da Gestione inserzioni con i suoi accessi."}],
+ quiz:[
+  {q:"Dove imposti pubblico e posizionamenti?",o:["Nel gruppo di inserzioni","Nella campagna","Nell'inserzione","Nel profilo Instagram"],e:"Il gruppo di inserzioni decide a chi, dove e per quanto mostrare gli annunci."},
+  {q:"Un'agenzia immobiliare vuole richieste di valutazione. Quale obiettivo?",o:["Contatti","Notorietà","Traffico","Interazione"],e:"Meta cercherà le persone più propense a compilare il modulo."},
+  {q:"Cosa contiene l'inserzione?",o:["Creatività e testo","Il budget totale","L'obiettivo","Il metodo di pagamento"],e:"È la parte che le persone vedono davvero."},
+  {q:"Qual è il limite di “Metti in evidenza”?",o:["Meno controllo su obiettivi e misurazione","Non si può pagare con carta","Funziona solo su Facebook","Non mostra i risultati"],e:"Per campagne serie serve Gestione inserzioni."}]},
+ {id:"meta-adv",title:"Advantage+, pixel e budget",cards:[
+  {h:"Advantage+",t:"È l'insieme di automazioni con IA di Meta su pubblico, posizionamenti, budget e creatività. Oggi è l'impostazione predefinita per le nuove campagne, e il targeting dettagliato viene trattato sempre più come un suggerimento che come una regola.",ex:"Tu indichi zona ed età minima; il resto del pubblico lo trova Meta."},
+  {h:"La creatività fa il targeting",t:"Se è Meta a scegliere a chi mostrare l'annuncio, è il contenuto a selezionare il pubblico. Servono più creatività diverse tra loro, da rinnovare quando smettono di rendere.",ex:"Un video del titolare, un prima e dopo, una recensione letta da un cliente: tre angoli, tre pubblici."},
+  {h:"Pixel e API Conversioni",t:"Il pixel sul sito e l'API Conversioni (che invia i dati dal server) dicono a Meta chi ha compilato un modulo o comprato. Senza questi dati l'algoritmo ottimizza alla cieca.",ex:"Prima di lanciare, controlla che l'evento “Lead” scatti davvero quando il modulo viene inviato."},
+  {h:"Fase di apprendimento",t:"Dopo il lancio o una modifica importante, Meta esplora. Indicativamente servono circa 50 risultati a settimana per gruppo di inserzioni per uscirne, quindi evita di cambiare tutto ogni giorno.",ex:"Con budget piccoli, meglio un solo gruppo di inserzioni che cinque divisi."}],
+ quiz:[
+  {q:"Con Advantage+ audience, gli interessi che selezioni sono:",o:["Un suggerimento che Meta può superare","Un limite rigido","Ignorati del tutto","Obbligatori per partire"],e:"Meta parte dai tuoi suggerimenti ma può mostrare l'annuncio anche ad altri."},
+  {q:"Perché servono più creatività diverse?",o:["Il contenuto stesso guida a chi viene mostrato l'annuncio","Meta lo obbliga","Costano meno","Per riempire il profilo"],e:"Angoli diversi raggiungono persone diverse."},
+  {q:"A cosa serve il pixel?",o:["A misurare le azioni sul sito e ottimizzare le campagne","A velocizzare il sito","A pubblicare in automatico","A bloccare i bot"],e:"Senza dati di conversione Meta non sa chi cercare."},
+  {q:"Campagna lanciata ieri, risultati altalenanti. Cosa fai?",o:["Aspetti la fine della fase di apprendimento prima di grandi modifiche","Cambi subito pubblico e creatività","Raddoppi il budget ogni giorno","La spegni e ne crei un'altra"],e:"Le modifiche continue fanno ripartire l'apprendimento."}]}
+]},
+{id:"google",title:"Google e SEO locale",c:"#2A9D3F",lessons:[
+ {id:"g-locale",title:"Profilo dell'attività e SEO locale",cards:[
+  {h:"Google Business Profile",t:"È la scheda che appare su Maps e nella ricerca. Per un'attività locale spesso conta più del sito: categoria giusta, orari, foto, servizi, post e risposte alle recensioni.",ex:"Molti clienti chiamano direttamente dalla scheda, senza mai aprire il sito."},
+  {h:"Come Google ordina i risultati locali",t:"Google dice che i risultati locali dipendono soprattutto da pertinenza, distanza e prominenza. La prominenza cresce con recensioni, citazioni su altri siti e una presenza online coerente.",ex:"Nome, indirizzo e telefono (il NAP) devono essere identici su scheda, sito, Facebook e directory."},
+  {h:"Le ricerche con l'IA",t:"Le AI Overviews di Google compaiono ormai in molte ricerche locali e a volte prendono il posto del classico riquadro con la mappa. Contano ancora di più informazioni complete e coerenti, recensioni dettagliate e pagine che rispondono a domande concrete.",ex:"Una pagina “Quanto costa levigare un parquet” con prezzi indicativi e tempi ha più probabilità di essere citata."}],
+ quiz:[
+  {q:"Quali sono i tre fattori dei risultati locali secondo Google?",o:["Pertinenza, distanza e prominenza","Follower, like e commenti","Prezzo, orari e logo","Budget, durata e CPC"],e:"Sono indicati nelle linee guida di Google per il ranking locale."},
+  {q:"Cosa aiuta a comparire nelle risposte con IA?",o:["Informazioni coerenti, recensioni dettagliate e pagine che rispondono a domande precise","Ripetere tante volte la parola chiave","Comprare recensioni","Cambiare spesso il nome dell'attività"],e:"L'IA cerca fonti affidabili e risposte chiare."},
+  {q:"Arriva una recensione negativa. Cosa fai?",o:["Rispondi in modo calmo e pubblico, offrendo una soluzione","La ignori","Rispondi attaccando il cliente","Chiedi agli amici di coprirla con recensioni false"],e:"Chi legge giudica soprattutto come rispondi."},
+  {q:"Cos'è il NAP?",o:["Nome, indirizzo e telefono dell'attività","Un tipo di annuncio","Il numero di post","Una metrica di Instagram"],e:"Se è uguale ovunque, Google si fida di più."}]},
+ {id:"g-ads",title:"SEO del sito e Google Ads",cards:[
+  {h:"SEO on-page",t:"Ogni pagina ha un tema chiaro: titolo e meta description scritti per chi cerca, un solo H1, testi che rispondono alle domande vere. I dati strutturati (schema LocalBusiness) aiutano Google a capire chi sei e dove.",ex:"Titolo: “Levigatura parquet a Lugo e Bassa Romagna | AMT Parquet”."},
+  {h:"Google Ads sulla rete di ricerca",t:"Paghi quando qualcuno clicca (CPC). Scegli parole chiave con intento d'acquisto ed escludi con le parole chiave negative quelle che portano clic inutili.",ex:"Sì a “parquettista Lugo”; negative come “lavoro”, “corso”, “fai da te”."},
+  {h:"Punteggio di qualità e Performance Max",t:"Google premia annunci pertinenti e landing page utili con costi più bassi. Performance Max è la campagna automatica che usa l'IA su Ricerca, YouTube, Maps, Gmail e Display: comoda, ma ha bisogno di buoni dati di conversione.",ex:"Prima di Performance Max, assicurati di misurare chiamate e moduli."}],
+ quiz:[
+  {q:"Quale ricerca ha più intento d'acquisto?",o:["preventivo levigatura parquet Ravenna","storia del parquet","parquet","come pulire il legno"],e:"Chi chiede un preventivo è pronto a comprare."},
+  {q:"Cosa sono le parole chiave negative?",o:["Termini per cui non vuoi comparire","Parole che abbassano il ranking","Recensioni negative","Parole vietate da Google"],e:"Ti evitano di pagare clic che non diventeranno mai clienti."},
+  {q:"Cosa significa CPC?",o:["Costo per clic","Costo per contatto","Clic per campagna","Costo per creatività"],e:"Nella rete di ricerca paghi solo quando qualcuno clicca."},
+  {q:"Quanti H1 dovrebbe avere una pagina?",o:["Uno","Nessuno","Almeno tre","Uno per paragrafo"],e:"L'H1 dichiara il tema principale della pagina."}]}
+]},
+{id:"siti",title:"Siti che portano clienti",c:"#6E44F2",lessons:[
+ {id:"siti-struttura",title:"Struttura e velocità",cards:[
+  {h:"Una pagina, un compito",t:"Ogni pagina deve portare a un'azione: chiamare, scrivere su WhatsApp, prenotare. Sopra la piega, cioè quello che si vede senza scorrere, servono cosa fai, dove e il bottone principale.",ex:"“Pitture e vernici a Lugo, pronte in giornata” + bottone “Chiama”."},
+  {h:"Prima il telefono",t:"La maggior parte delle visite di un'attività locale arriva da smartphone. Progetta e prova prima sul telefono: bottoni grandi, numero cliccabile, testi leggibili.",ex:"Apri il sito con una mano sola: se il bottone principale è difficile da toccare, va spostato."},
+  {h:"Core Web Vitals",t:"Sono le metriche di Google sull'esperienza. LCP: quanto ci mette a comparire il contenuto principale, buono sotto 2,5 secondi. INP: quanto risponde ai tocchi, buono sotto 200 millisecondi. CLS: quanto “salta” la pagina mentre carica, buono sotto 0,1.",ex:"Le misuri gratis con PageSpeed Insights."}],
+ quiz:[
+  {q:"Cosa deve esserci sopra la piega?",o:["Cosa fai, dove e il bottone principale","La storia dell'azienda","Il modulo privacy","Il footer con i link"],e:"In pochi secondi il visitatore deve capire se è nel posto giusto e cosa fare."},
+  {q:"Cosa misura LCP?",o:["Il tempo di comparsa del contenuto principale","Quanto la pagina si sposta","Quanti clic riceve","Quanto pesa il logo"],e:"Largest Contentful Paint: buono sotto 2,5 secondi."},
+  {q:"Qual è un buon valore di CLS?",o:["Sotto 0,1","Sopra 1","Esattamente 2,5","Sotto 200"],e:"Un CLS basso vuol dire che la pagina non salta mentre carica."},
+  {q:"Il modo più rapido per alleggerire un sito pieno di foto?",o:["Ridimensionare e comprimere le immagini, in WebP o AVIF","Aggiungere animazioni","Usare foto più grandi","Togliere i testi"],e:"Le immagini sono quasi sempre la parte più pesante."}]},
+ {id:"siti-fiducia",title:"Fiducia, privacy e consegna",cards:[
+  {h:"Segnali di fiducia",t:"Recensioni vere, foto reali dei lavori, nomi e volti, indirizzo e partita IVA visibili. Le foto di repertorio generiche abbassano la fiducia.",ex:"Il titolare che sorride in negozio convince più di una modella da banca immagini."},
+  {h:"Privacy e cookie",t:"In Europa serve un'informativa privacy. Se usi cookie di profilazione o il pixel di Meta, serve un banner che chieda il consenso prima di attivarli, con “Rifiuta” facile quanto “Accetta”. Nei moduli raccogli solo i dati necessari.",ex:"Nome, telefono e messaggio bastano per una richiesta di preventivo."},
+  {h:"Consegna al cliente",t:"Dominio intestato al cliente, accessi salvati in un posto sicuro, backup e una breve guida su come aggiornare i contenuti. Decidi prima chi paga hosting e rinnovi.",ex:"Se il dominio è a nome tuo e il rapporto finisce male, il cliente perde il suo indirizzo web."}],
+ quiz:[
+  {q:"Cosa aumenta di più la fiducia?",o:["Foto reali dei lavori e recensioni verificabili","Foto di repertorio","Tante animazioni","Testi lunghi sulla mission"],e:"Le persone vogliono vedere chi c'è davvero dietro."},
+  {q:"Quando puoi attivare il pixel di Meta su un sito europeo?",o:["Dopo il consenso dato con il banner cookie","Sempre, appena si apre il sito","Mai","Solo il fine settimana"],e:"I cookie di profilazione richiedono il consenso preventivo."},
+  {q:"A chi va intestato il dominio?",o:["Al cliente","A chi fa il sito","Al provider di hosting","A nessuno"],e:"È un bene dell'attività, non del fornitore."},
+  {q:"Il pulsante “Rifiuta” nel banner cookie deve essere:",o:["Facile quanto “Accetta”","Nascosto nelle impostazioni","Più piccolo","Grigio chiaro su bianco"],e:"Rendere più difficile il rifiuto non è un consenso valido."}]}
+]},
+{id:"ia",title:"IA per il marketing",c:"#0093C4",lessons:[
+ {id:"ia-uso",title:"Usare l'IA bene",cards:[
+  {h:"Il prompt è un brief",t:"L'IA lavora bene quando le dai quello che daresti a un collaboratore: chi è il cliente, il pubblico, l'obiettivo, il tono, il formato e un esempio di cosa ti piace. “Scrivi un post” dà risultati generici.",ex:"“Boutique di intimo a Lugo, clienti 30-55 anni, tono elegante e complice. Scrivi 3 didascalie per un Reel sulla nuova collezione, max 2 righe, chiusura con invito a prenotare una prova.”"},
+  {h:"Dove aiuta davvero",t:"Bozze di copy e varianti di annunci, idee per il piano editoriale, sottotitoli, riassunti di recensioni, analisi dei concorrenti, prime versioni di siti e prototipi. Tu scegli, correggi e dai il gusto finale.",ex:"Dieci varianti di titolo in un minuto, da cui ne tieni due da testare."},
+  {h:"I limiti",t:"L'IA può inventare dati, prezzi, citazioni e norme con grande sicurezza. Ogni fatto va verificato. E la voce del cliente va difesa: i testi tutti uguali si riconoscono.",ex:"Mai pubblicare un prezzo o una norma scritti dall'IA senza averli controllati."}],
+ quiz:[
+  {q:"Quale prompt dà risultati migliori?",o:["Cliente, pubblico, obiettivo, tono, formato ed esempio","Scrivi un post","Fammi un post bello","Scrivi qualcosa sul marketing"],e:"Più contesto dai, meno devi correggere dopo."},
+  {q:"Cosa devi sempre verificare in un testo scritto dall'IA?",o:["Dati, prezzi, norme e citazioni","Solo la punteggiatura","Niente, è sempre corretto","Solo la lunghezza"],e:"L'IA può inventare con sicurezza."},
+  {q:"Dove ti fa risparmiare più tempo?",o:["Generare varianti di testo da testare negli annunci","Decidere il budget al posto del cliente","Rispondere ai clienti senza controllo","Scrivere recensioni"],e:"Le varianti sono lavoro ripetitivo; la scelta resta tua."},
+  {q:"Qual è il tuo ruolo quando usi l'IA?",o:["Dare la direzione, scegliere e rifinire","Copiare e incollare","Nessuno","Solo pagare l'abbonamento"],e:"Il gusto e la conoscenza del cliente sono il valore che vendi."}]},
+ {id:"ia-regole",title:"Siti, immagini e regole",cards:[
+  {h:"Siti con l'IA",t:"Oggi puoi descrivere un sito e ottenere una prima versione funzionante in pochi minuti. Il valore che vendi non è il codice in sé: è capire il cliente, scrivere i testi giusti, usare foto vere e far sì che il sito porti contatti.",ex:"Il cliente non compra “un sito”: compra più telefonate."},
+  {h:"Immagini e video",t:"Gli strumenti generativi sono utili per sfondi, mockup, varianti e storyboard. Per prodotti, lavori e persone del cliente usa materiale reale: mostrare un risultato che non esiste è pubblicità ingannevole.",ex:"Va bene un mockup del sito su un telefono; non va bene un pavimento “finito” generato dal nulla."},
+  {h:"Trasparenza",t:"L'AI Act europeo prevede obblighi di trasparenza per i contenuti generati o modificati con l'IA che sembrano reali, come i deepfake. Anche Meta chiede di etichettare i contenuti realistici creati con l'IA. Nel dubbio, dichiaralo.",ex:"Un volto o una voce generati che sembrano veri vanno sempre segnalati."}],
+ quiz:[
+  {q:"Cosa vendi davvero quando fai un sito con l'IA?",o:["La conoscenza del cliente, i testi giusti e i risultati","Le righe di codice","Il nome dello strumento usato","Le ore passate al computer"],e:"Il codice lo scrive anche una macchina; capire cosa serve al cliente no."},
+  {q:"Un cliente ti chiede foto IA di lavori finiti mai realizzati. Cosa fai?",o:["Proponi foto reali: risultati inventati sono ingannevoli","Le generi senza dire niente","Le compri da una banca immagini","Le fai e togli il logo"],e:"Ingannare chi compra danneggia il cliente e la tua reputazione."},
+  {q:"Cosa prevede l'AI Act per i deepfake?",o:["Obblighi di trasparenza","Nessuna regola","Il divieto di usare l'IA","Una tassa"],e:"Chi guarda deve sapere che il contenuto è artificiale."},
+  {q:"Qual è un uso sensato delle immagini generate?",o:["Mockup e bozze per presentare un'idea al cliente","Finte recensioni con foto","Prodotti che il negozio non vende","Ritratti del titolare inventati"],e:"Servono a mostrare un'idea, non a spacciare qualcosa per vero."}]}
+]},
+{id:"numeri",title:"Numeri e report",c:"#E8590C",lessons:[
+ {id:"num-metriche",title:"Le metriche",cards:[
+  {h:"Copertura e impression",t:"La copertura è quante persone diverse hanno visto il contenuto; le impression quante volte è stato visto in tutto. La frequenza è impression diviso copertura.",ex:"20.000 impression su 8.000 persone: frequenza 2,5."},
+  {h:"I costi",t:"CPM: costo per mille impression. CPC: costo per clic. CPL: costo per contatto. CPA: costo per acquisizione. Il CTR è clic diviso impression, per 100.",ex:"150 clic su 10.000 impression: CTR 1,5%."},
+  {h:"ROAS",t:"Ricavi generati dagli annunci diviso spesa pubblicitaria. Un ROAS di 4 vuol dire 4 € incassati per ogni euro speso. Per un servizio locale contano di più il costo per contatto e quanti contatti diventano clienti.",ex:"500 € spesi, 2.000 € di vendite: ROAS 4."}],
+ quiz:[
+  {q:"10.000 impression e 150 clic. Qual è il CTR?",o:["1,5%","15%","0,15%","6,6%"],e:"150 ÷ 10.000 × 100 = 1,5%."},
+  {q:"Spendi 300 € e ottieni 20 contatti. Qual è il CPL?",o:["15 €","20 €","6 €","60 €"],e:"300 ÷ 20 = 15 € a contatto."},
+  {q:"Spendi 500 € e generi 2.000 € di ricavi. Qual è il ROAS?",o:["4","0,25","2,5","1.500"],e:"2.000 ÷ 500 = 4."},
+  {q:"20.000 impression e 8.000 persone raggiunte. Qual è la frequenza?",o:["2,5","0,4","12.000","25"],e:"20.000 ÷ 8.000 = 2,5 volte a persona."}]},
+ {id:"num-report",title:"Misurare e fare report",cards:[
+  {h:"GA4 ed eventi",t:"Google Analytics 4 ragiona per eventi: visita di una pagina, clic sul telefono, invio di un modulo. Le azioni che contano per il cliente si segnano come eventi chiave.",ex:"Per un negozio: clic su “Chiama”, clic su WhatsApp, richiesta indicazioni."},
+  {h:"Link UTM",t:"Sono parametri da aggiungere ai link (utm_source, utm_medium, utm_campaign) per sapere da dove arrivano le visite: un post, una newsletter, un QR code su un volantino.",ex:"…/?utm_source=volantino&utm_medium=qr&utm_campaign=apertura"},
+  {h:"Il report mensile",t:"Breve e chiaro: obiettivo, risultati rispetto al mese prima, cosa ha funzionato, cosa cambi il mese dopo. Il cliente vuole capire se i soldi stanno rendendo, non vedere 40 grafici.",ex:"Una pagina sola, con tre numeri chiave e tre decisioni."}],
+ quiz:[
+  {q:"A cosa servono i parametri UTM?",o:["A sapere da dove arrivano le visite","A velocizzare il sito","A nascondere il link","A pagare meno gli annunci"],e:"Ogni fonte riceve la sua etichetta, che vedi in Analytics."},
+  {q:"Quale azione segni come evento chiave per un'agenzia immobiliare?",o:["L'invio del modulo di valutazione casa","La visita alla pagina privacy","Lo scorrimento della home","Il caricamento del logo"],e:"È l'azione che porta un possibile cliente."},
+  {q:"Cosa non deve mancare in un report mensile?",o:["Cosa cambi il mese successivo","Tutti i grafici disponibili","Le metriche dei concorrenti","Le ore lavorate minuto per minuto"],e:"Il report serve a prendere decisioni."},
+  {q:"Hai un QR code sui volantini. Come misuri le visite che porta?",o:["Con un link con parametri UTM dentro il QR","Chiedendo ai clienti","Non si può misurare","Guardando i follower"],e:"Le visite da quel QR compariranno in Analytics con la loro etichetta."}]}
+]},
+{id:"mestiere",title:"Il mestiere",c:"#C2255C",lessons:[
+ {id:"mes-prezzi",title:"Pacchetti, prezzi e preventivi",cards:[
+  {h:"Canoni, non solo progetti",t:"Il sito si paga una volta. Gestione social, campagne e manutenzione si pagano ogni mese: sono i canoni a darti un'entrata stabile.",ex:"Cinque clienti social con un canone mensile sono la base di uno stipendio."},
+  {h:"Pacchetti chiari",t:"Prepara tre livelli con contenuti precisi: quanti post, quanti Reel, quante revisioni. Il budget pubblicitario resta separato dal tuo compenso e il cliente lo paga direttamente a Meta o Google.",ex:"“Base: 8 contenuti al mese. Plus: 12 contenuti + campagne. Budget ads escluso.”"},
+  {h:"Il preventivo",t:"Cosa è incluso e cosa no, tempi, numero di revisioni, pagamenti (per esempio un acconto all'inizio), durata minima per i canoni. Quello che non è scritto diventerà una discussione.",ex:"“Comprese due revisioni; modifiche ulteriori a parte.”"}],
+ quiz:[
+  {q:"Perché i canoni mensili contano tanto quando inizi?",o:["Danno un'entrata stabile","Costano meno al cliente","Sono obbligatori per legge","Non servono"],e:"Un progetto finisce; un canone si ripete."},
+  {q:"Il budget pubblicitario va:",o:["Tenuto separato dal compenso e pagato dal cliente alla piattaforma","Incluso sempre nel tuo prezzo","Pagato da te e poi rimborsato","Diviso a metà"],e:"Così non anticipi soldi e il cliente vede chiaramente quanto spende."},
+  {q:"Cosa deve dire un preventivo?",o:["Cosa è incluso e cosa no, tempi, revisioni e pagamenti","Solo il prezzo finale","Solo i tempi","Solo il tuo nome"],e:"Un preventivo chiaro previene i problemi."},
+  {q:"L'accordo prevedeva due revisioni e il cliente chiede la sesta gratis. Cosa fai?",o:["Ricordi l'accordo e proponi le modifiche extra a parte","Le fai gratis senza dire niente","Smetti di rispondere","Rifai tutto da capo"],e:"Gentile ma fermo: l'accordo protegge entrambi."}]},
+ {id:"mes-clienti",title:"Clienti, accessi e regole",cards:[
+  {h:"Onboarding",t:"All'inizio raccogli accessi e materiali: accesso da partner al portfolio business di Meta (mai la password del cliente), Google Business Profile, dominio, logo, foto e tono di voce. Fissa un brief e una persona di riferimento.",ex:"Il cliente resta proprietario delle pagine; tu hai i permessi per lavorarci."},
+  {h:"Musica, immagini e liberatorie",t:"Gli account aziendali devono usare l'audio della libreria commerciale di Meta, non le canzoni di tendenza. Per foto e video di clienti o dipendenti riconoscibili serve il consenso scritto.",ex:"Una liberatoria semplice firmata in negozio prima delle riprese."},
+  {h:"Partita IVA",t:"Per fatturare serve la partita IVA. Molti freelance partono con il regime forfettario, che ha un limite di ricavi annui. Codice ATECO, contributi e compatibilità con un lavoro da dipendente vanno verificati con un commercialista.",ex:"Fallo prima di emettere la prima fattura, non dopo."}],
+ quiz:[
+  {q:"Come ottieni l'accesso alla pagina Facebook e Instagram del cliente?",o:["Il cliente ti aggiunge come partner nel suo account business","Ti fai dare la password","Crei una pagina nuova a nome tuo","Usi l'account di un amico"],e:"È più sicuro per tutti e il cliente resta proprietario."},
+  {q:"Quale musica usi in un Reel per un negozio?",o:["La libreria audio commerciale di Meta","La canzone del momento","Qualsiasi brano, basta citarlo","Musica registrata dalla radio"],e:"Gli account aziendali hanno diritti limitati sulla musica commerciale."},
+  {q:"Vuoi pubblicare il video di una cliente in negozio. Cosa serve?",o:["Il suo consenso scritto","Niente","Il permesso del titolare","Basta sfocare lo sfondo"],e:"La sua immagine è un dato personale."},
+  {q:"Chi ti dice quale regime fiscale ti conviene?",o:["Un commercialista","Un amico che ha già la partita IVA","Un video su TikTok","L'IA, senza verifiche"],e:"Dipende dalla tua situazione specifica."}]}
+]}
+];
+
+const GLOSS = [
+["A/B test","Confronto tra due versioni (di un annuncio, un titolo, una pagina) per capire quale rende di più, cambiando una cosa sola alla volta."],
+["Advantage+","L'insieme di automazioni con IA di Meta su pubblico, posizionamenti, budget e creatività."],
+["AI Overviews","I riassunti generati dall'IA che Google mostra in cima ad alcune ricerche, con link alle fonti."],
+["AIDA","Attenzione, Interesse, Desiderio, Azione: scaletta classica di un messaggio che vende."],
+["API Conversioni","Sistema di Meta che invia gli eventi (moduli, acquisti) dal server, più affidabile del solo pixel."],
+["Brief","Documento iniziale con obiettivi, pubblico, tono, vincoli e materiali del cliente."],
+["Buyer persona","Ritratto del cliente tipo: chi è, cosa vuole, cosa lo frena."],
+["Canone","Compenso mensile ricorrente per un servizio continuativo, come la gestione social."],
+["Copertura","Numero di persone diverse che hanno visto un contenuto."],
+["Core Web Vitals","Metriche di Google sull'esperienza della pagina: LCP, INP e CLS."],
+["CLS","Quanto si sposta il contenuto mentre la pagina carica. Buono sotto 0,1."],
+["Conversione","L'azione che vuoi far compiere: chiamata, modulo, acquisto, prenotazione."],
+["CPA","Costo per acquisizione: spesa diviso numero di clienti o acquisti ottenuti."],
+["CPC","Costo per clic."],
+["CPL","Costo per contatto (lead): spesa diviso numero di contatti."],
+["CPM","Costo per mille impression."],
+["CTA","Call to action: l'invito ad agire, come “Prenota ora”."],
+["CTR","Percentuale di persone che cliccano: clic diviso impression, per 100."],
+["Dati strutturati","Codice (schema.org) che descrive a Google cosa c'è nella pagina: attività, orari, recensioni, prodotti."],
+["Deepfake","Contenuto generato o manipolato con l'IA che fa sembrare reali persone, voci o fatti."],
+["Engagement rate","Interazioni (like, commenti, salvataggi, condivisioni) diviso copertura, per 100."],
+["Evento chiave","In GA4, un'azione importante per il business segnata per misurarla, come l'invio di un modulo."],
+["Fase di apprendimento","Periodo in cui Meta esplora dopo il lancio o una modifica importante di un gruppo di inserzioni."],
+["Frequenza","Quante volte in media una persona ha visto il contenuto: impression diviso copertura."],
+["Funnel","Il percorso del cliente: consapevolezza, considerazione, conversione, fidelizzazione."],
+["Gancio","L'apertura di un contenuto che ferma chi scorre, nei primi 1-2 secondi."],
+["GA4","Google Analytics 4, lo strumento di Google per misurare il traffico del sito per eventi."],
+["Google Business Profile","La scheda dell'attività su Google Maps e nella ricerca."],
+["Impression","Numero totale di volte in cui un contenuto è stato visualizzato."],
+["INP","Quanto velocemente la pagina risponde a tocchi e clic. Buono sotto 200 millisecondi."],
+["KPI","Indicatore chiave: il numero che dice se stai raggiungendo l'obiettivo."],
+["Landing page","Pagina pensata per una sola azione, spesso collegata a una campagna."],
+["LCP","Tempo di comparsa del contenuto principale della pagina. Buono sotto 2,5 secondi."],
+["Libreria inserzioni","Archivio pubblico di Meta con gli annunci attivi di qualsiasi pagina."],
+["Lead","Contatto di un potenziale cliente: nome, telefono, email, richiesta."],
+["NAP","Nome, indirizzo e telefono: devono essere uguali ovunque online."],
+["Onboarding","La fase iniziale con un nuovo cliente: accessi, materiali, brief, tempi."],
+["PAS","Problema, Agitazione, Soluzione: struttura di copy per servizi."],
+["Parole chiave negative","In Google Ads, termini per cui non vuoi che compaia l'annuncio."],
+["Performance Max","Campagna automatica di Google Ads che usa l'IA su tutti i canali Google."],
+["Piano editoriale","Calendario di cosa pubblicare, dove e quando."],
+["Pilastri di contenuto","I 3-5 temi fissi su cui ruota la comunicazione di un brand."],
+["Pixel","Codice di Meta sul sito che registra le azioni dei visitatori per misurare e ottimizzare gli annunci."],
+["Posizionamento","Il posto che un brand occupa nella mente del cliente rispetto ai concorrenti."],
+["Prompt","Le istruzioni che dai a uno strumento di IA."],
+["Proposta di valore","Il motivo concreto e verificabile per cui un cliente dovrebbe scegliere te."],
+["Post in collaborazione","Post pubblicato insieme da due account, che compare su entrambi i profili."],
+["Pubblici personalizzati","Pubblici di persone che hanno già interagito con il brand: visite al sito, video guardati, messaggi."],
+["Pubblico simile","Pubblico creato da Meta con persone simili ai tuoi clienti attuali."],
+["Retargeting","Mostrare annunci a chi ha già interagito: ha visitato il sito, guardato un video, scritto in DM."],
+["ROAS","Ricavi generati dagli annunci diviso spesa pubblicitaria."],
+["SEO","Ottimizzazione per comparire nei risultati di ricerca senza pagare."],
+["SEO locale","Ottimizzazione per comparire nelle ricerche legate a una zona, come “colorificio Lugo”."],
+["Sopra la piega","La parte di pagina visibile senza scorrere."],
+["SWOT","Analisi di punti di forza, debolezze, opportunità e minacce."],
+["Tono di voce","Il modo costante in cui un brand parla."],
+["UGC","Contenuti creati da clienti o utenti, come video e recensioni spontanee."],
+["UTM","Parametri aggiunti ai link per sapere da dove arrivano le visite."]
+];
+
+
+const EXTRA = {
+basi:{id:"basi-brand",title:"Identità di marca",cards:[
+  {h:"Farsi riconoscere",t:"La riconoscibilità nasce dalla ripetizione: stessi colori, stessi font, stesso modo di inquadrare e di parlare. Chi scorre deve capire che il contenuto è tuo prima ancora di leggere il nome.",ex:"Due colori principali, un font per i titoli e uno per i testi. Sempre quelli."},
+  {h:"Il kit del brand",t:"Logo in versione chiara e scura, palette con i codici esatti, font, stile delle foto, esempi di cosa fare e cosa no. È un documento breve che usi per sito, social, volantini e insegna.",ex:"Se un tipografo ti chiede il colore, gli dai il codice, non “il blu del logo”."},
+  {h:"Coerenza tra i canali",t:"Sito, profilo Instagram, scheda Google e vetrina del negozio devono sembrare la stessa attività. Ogni incoerenza la fa sembrare meno seria.",ex:"Stesso nome, stessa foto profilo, stessi orari ovunque."}],
+ quiz:[
+  {q:"Cosa rende un profilo riconoscibile?",o:["Colori, font e stile sempre uguali","Cambiare grafica ogni settimana","Usare i filtri di tendenza","Pubblicare il più possibile"],e:"La ripetizione costruisce la memoria del brand."},
+  {q:"Il kit del brand serve solo al grafico che ha disegnato il logo.",vf:false,e:"Serve a chiunque produca qualcosa per il brand: tu, il tipografo, chi fa l'insegna."},
+  {q:"Un tipografo ti chiede il colore del brand. Cosa gli dai?",o:["Il codice esatto (HEX, RGB o CMYK)","Una foto del logo","Il nome del colore","Un campione di vernice"],e:"Solo il codice garantisce lo stesso colore ovunque."},
+  {q:"Gli orari su Instagram sono diversi da quelli della scheda Google. Cosa succede?",o:["Il cliente si fida meno e rischia di trovare chiuso","Niente","Google premia la varietà","Aumentano le visite"],e:"Le informazioni devono essere identiche su tutti i canali."}]},
+strategia:{id:"str-concorrenti",title:"Studiare i concorrenti",cards:[
+  {h:"Chi sono i concorrenti",t:"Non solo chi fa lo stesso lavoro in zona, ma anche le alternative: il grande magazzino, l'online, il fai da te. Scegline 3-5 da osservare con attenzione.",ex:"Per un colorificio: gli altri colorifici, il brico center, gli e-commerce di vernici."},
+  {h:"Libreria inserzioni di Meta",t:"È pubblica e gratuita: mostra gli annunci attivi di qualsiasi pagina su Facebook e Instagram. Vedi cosa promuovono, con quali creatività e da quanto tempo. Un annuncio attivo da mesi probabilmente rende.",ex:"Cerca il nome del concorrente e filtra per Italia."},
+  {h:"Trovare lo spazio libero",t:"Dall'analisi cerchi quello che nessuno comunica bene: un servizio, un pubblico, un tono. Lì costruisci il posizionamento del cliente.",ex:"Se tutti mostrano solo prodotti, tu racconti le persone e i lavori finiti."}],
+ quiz:[
+  {q:"Dove vedi gratis gli annunci attivi di un concorrente?",o:["Nella Libreria inserzioni di Meta","In Google Analytics","Nella Business Suite del cliente","In Google Trends"],e:"È pubblica e non serve nessun accesso."},
+  {q:"Un annuncio di un concorrente è attivo da quattro mesi. Cosa ti dice?",o:["Probabilmente rende: vale la pena studiarlo","Che è un errore","Niente","Che costa poco"],e:"Nessuno tiene acceso per mesi un annuncio che non porta risultati."},
+  {q:"Per un colorificio, anche il brico center è un concorrente.",vf:true,e:"È un'alternativa a cui il cliente pensa prima di scegliere."},
+  {q:"Tutti i concorrenti pubblicano solo foto di prodotti. Dove sta l'opportunità?",o:["Raccontare persone, consigli e lavori finiti","Pubblicare più foto di prodotti","Abbassare i prezzi","Copiare il concorrente più grande"],e:"Il posizionamento nasce da ciò che manca, non da ciò che fanno già tutti."}]},
+social:{id:"soc-community",title:"Community e crescita",cards:[
+  {h:"Rispondere è un contenuto",t:"Commenti e DM vanno gestiti in fretta e con il tono del brand. Le conversazioni sono un segnale positivo per le piattaforme e soprattutto trasformano un curioso in un cliente.",ex:"Risposta entro poche ore, con il nome della persona e una domanda per continuare."},
+  {h:"Collaborazioni",t:"I post in collaborazione compaiono su due profili insieme. Altri commercianti della zona, clienti soddisfatti, creator locali: unisci pubblici simili.",ex:"Il colorificio e l'imbianchino pubblicano insieme il prima e dopo di una casa."},
+  {h:"Contenuti dei clienti",t:"I contenuti fatti dai clienti (storie in cui ti taggano, video, recensioni) convincono più dei tuoi. Rendili facili da fare e ricondividili, sempre con il loro permesso.",ex:"Uno specchio ben illuminato in camerino invita a farsi la foto."}],
+ quiz:[
+  {q:"Un cliente chiede il prezzo in un commento. Cosa fai?",o:["Rispondi con un'informazione utile e lo inviti in DM o in negozio","Lo ignori","Scrivi solo “in DM”","Cancelli il commento"],e:"Una risposta utile e gentile la leggono anche tutti gli altri."},
+  {q:"Cosa fa un post in collaborazione?",o:["Compare sui profili di entrambi gli account","Raddoppia i like","Si vede solo nelle storie","Diventa automaticamente un annuncio"],e:"Ognuno porta il proprio pubblico."},
+  {q:"Perché i contenuti dei clienti funzionano?",o:["Ci si fida di più degli altri clienti che del brand","Costano di più","Le piattaforme li obbligano","Hanno più filtri"],e:"È passaparola che si vede."},
+  {q:"Puoi ripubblicare la foto di un cliente senza chiedergli niente.",vf:false,e:"Serve il suo permesso: è la sua immagine."}]},
+copy:{id:"copy-video",title:"Foto e video col telefono",cards:[
+  {h:"La luce",t:"Conta più del telefono. Luce naturale da una finestra, di lato, evitando il sole diretto di mezzogiorno e le luci di colori diversi mescolate.",ex:"Un pavimento ripreso con la luce radente del pomeriggio mostra le venature."},
+  {h:"Inquadratura e stabilità",t:"Pulisci l'obiettivo, tieni l'orizzonte dritto, muoviti lentamente. Gira in verticale per Reel e storie, con il soggetto lontano dai bordi dove l'app mette pulsanti e testi.",ex:"Appoggia il telefono o usa un piccolo stabilizzatore per i movimenti."},
+  {h:"Il montaggio",t:"Tagli rapidi, un'idea per inquadratura, sottotitoli, audio pulito. App come CapCut o Edits di Instagram bastano.",ex:"Togli i secondi vuoti iniziali: il video deve partire già nel momento interessante."}],
+ quiz:[
+  {q:"Qual è la scelta più importante per una bella foto di un lavoro?",o:["La luce","Il filtro","Il modello di telefono","Lo zoom digitale"],e:"Con la luce giusta anche un telefono normale fa ottime foto."},
+  {q:"Dove eviti di mettere il soggetto in un Reel?",o:["Vicino ai bordi, sotto pulsanti e testi","Al centro","Nel terzo superiore","In primo piano"],e:"L'interfaccia di Instagram copre i bordi dello schermo."},
+  {q:"Per fare buoni Reel serve per forza una fotocamera professionale.",vf:false,e:"Luce, stabilità e montaggio contano molto di più."},
+  {q:"Il video parte con tre secondi in cui non succede niente. Cosa fai?",o:["Li tagli","Ci metti la musica","Rallenti il video","Aggiungi il logo"],e:"Chi scorre se ne va prima che inizi l'azione."}]},
+meta:{id:"meta-retargeting",title:"Retargeting e test",cards:[
+  {h:"Pubblici personalizzati",t:"Sono persone che hanno già interagito: hanno visitato il sito, guardato un video, scritto in DM, seguito il profilo. Sono le più vicine all'acquisto.",ex:"Chi ha guardato metà del video sul nuovo servizio vede poi l'annuncio con l'offerta."},
+  {h:"Una cosa alla volta",t:"Per capire cosa funziona confronta due versioni che cambiano in un solo elemento: creatività, titolo o offerta. Dai al test il tempo e il budget per raccogliere dati.",ex:"Stesso testo, due video: il titolare che parla contro il prima e dopo."},
+  {h:"Creatività stanche",t:"Quando la frequenza sale, il CTR cala e il costo per risultato cresce, il pubblico si è stancato. È il momento di nuove creatività, non di stravolgere tutto il resto.",ex:"Tieni sempre pronte una o due creatività di riserva."}],
+ quiz:[
+  {q:"Chi c'è in un pubblico di retargeting?",o:["Persone che hanno già interagito con il brand","Persone mai entrate in contatto","Solo i clienti che hanno comprato","I follower dei concorrenti"],e:"Hanno già mostrato interesse."},
+  {q:"Vuoi capire quale video rende di più. Cosa cambi tra le due versioni?",o:["Solo il video","Video, testo e pubblico","Il budget","L'obiettivo della campagna"],e:"Se cambi più cose insieme non sai cosa ha fatto la differenza."},
+  {q:"Frequenza in salita, CTR in calo, costo per contatto in aumento. Cosa fai?",o:["Inserisci nuove creatività","Raddoppi il budget","Cambi obiettivo","Aspetti un altro mese"],e:"Sono i segnali classici di una creatività stanca."},
+  {q:"Il retargeting di solito costa meno per conversione rispetto a un pubblico che non ti conosce.",vf:true,e:"Chi ti conosce già è più vicino a comprare."}]},
+google:{id:"g-recensioni",title:"Recensioni e reputazione",cards:[
+  {h:"Chiederle nel momento giusto",t:"Subito dopo un lavoro riuscito o un acquisto soddisfatto. Dai un link diretto o un QR code che apre la recensione su Google: meno passaggi, più recensioni.",ex:"Un cartoncino con il QR consegnato a fine lavoro."},
+  {h:"Recensioni utili",t:"Le più utili raccontano cosa è stato fatto, dove e com'è andata. Puoi invitare il cliente a citare il servizio, senza dettargli il testo.",ex:"“Mi raccontereste com'è andata la posa del parquet in camera?”"},
+  {h:"Mai recensioni false",t:"In Europa le recensioni false o comprate sono una pratica commerciale scorretta, e Google le rimuove e può limitare la scheda. Anche offrire sconti in cambio di recensioni viola le sue regole.",ex:"Meglio dieci recensioni vere che cento sospette."}],
+ quiz:[
+  {q:"Quando conviene chiedere una recensione?",o:["Subito dopo un lavoro riuscito","Dopo sei mesi","Solo se il cliente si lamenta","Mai, devono arrivare da sole"],e:"La soddisfazione è fresca e il cliente è disponibile."},
+  {q:"Come aumenti le recensioni?",o:["Con un link diretto o un QR code","Comprandole","Scrivendole tu","Chiedendole agli amici"],e:"Meno passaggi servono, più persone lo fanno."},
+  {q:"Offrire uno sconto in cambio di una recensione è consentito da Google.",vf:false,e:"Le recensioni incentivate violano le regole di Google."},
+  {q:"Quale recensione è più utile?",o:["Racconta il lavoro fatto, dove e com'è andata","“Top!!!”","Cinque stelle senza testo","Una lunga lista di emoji"],e:"Aiuta chi legge e dà a Google informazioni concrete."}]},
+siti:{id:"siti-contatti",title:"Contatti che arrivano davvero",cards:[
+  {h:"WhatsApp e telefono",t:"Per molte attività locali il contatto più facile è un messaggio. Un bottone WhatsApp con un testo precompilato e il numero cliccabile riducono l'attrito.",ex:"Un link wa.me con il testo “Ciao, vorrei un preventivo per…”."},
+  {h:"Moduli corti",t:"Ogni campo in più fa perdere richieste. Chiedi solo quello che serve per richiamare e scrivi cosa succede dopo l'invio.",ex:"Nome, telefono, cosa ti serve. “Ti richiamiamo entro un giorno lavorativo.”"},
+  {h:"Pagina di ringraziamento",t:"Dopo l'invio porta l'utente a una pagina di conferma. Rassicura chi ha scritto e permette di misurare la conversione in GA4 e con il pixel.",ex:"Una pagina /grazie con l'evento “Lead” che scatta solo lì."}],
+ quiz:[
+  {q:"Quale modulo converte meglio per un preventivo?",o:["Nome, telefono e richiesta","Nome, cognome, indirizzo, codice fiscale, email, telefono","Solo email e password","Dieci domande obbligatorie"],e:"Il minimo indispensabile per richiamare."},
+  {q:"A cosa serve la pagina di ringraziamento?",o:["Conferma l'invio e permette di misurare la conversione","A raccogliere altri dati","A mostrare pubblicità","A niente"],e:"È il punto più affidabile in cui contare un contatto."},
+  {q:"Un bottone WhatsApp con un messaggio già scritto rende più facile contattarti.",vf:true,e:"Basta un tocco per iniziare la conversazione."},
+  {q:"Dal telefono il numero sul sito non si può toccare. È un problema?",o:["Sì, deve essere un link che avvia la chiamata","No, lo copiano","No, basta il modulo","Solo su iPhone"],e:"Ogni passaggio in più fa perdere contatti."}]},
+ia:{id:"ia-flussi",title:"Flussi di lavoro con l'IA",cards:[
+  {h:"Un contenuto, tanti formati",t:"Da un video di un lavoro ricavi un Reel, un carosello, tre storie, un post per la scheda Google e un paragrafo per il sito. L'IA ti aiuta a riscrivere per ogni formato, tu tieni il filo.",ex:"Trascrivi il video del titolare e chiedi cinque didascalie con angoli diversi."},
+  {h:"Brief salvati",t:"Salva i prompt che funzionano con il contesto di ogni cliente: chi è, tono, parole da evitare, esempi approvati. Così ogni volta parti già dal livello giusto.",ex:"Un documento per cliente con il suo brief per l'IA."},
+  {h:"I dati dei clienti",t:"Non incollare negli strumenti di IA dati personali dei clienti finali, contratti o password. Controlla le impostazioni di privacy dello strumento e anonimizza quando puoi.",ex:"“Cliente A, Lugo, ristrutturazione” invece di nome, cognome e telefono."}],
+ quiz:[
+  {q:"Hai il video di un lavoro. Come lo sfrutti meglio?",o:["Ne ricavi più formati per più canali","Lo pubblichi una volta sola","Lo tieni per l'anno prossimo","Lo mandi solo al cliente"],e:"Un buon materiale va riusato in tutte le forme utili."},
+  {q:"Quale input dà all'IA il contesto migliore per scrivere le didascalie di un cliente?",o:["Esempi di post già approvati dal cliente","Il nome del cliente e basta","Una lista di hashtag","Niente, fa da sola"],e:"Gli esempi insegnano tono e stile meglio di qualsiasi descrizione."},
+  {q:"Puoi incollare nell'IA la lista clienti con nomi e telefoni per scrivere messaggi personalizzati.",vf:false,e:"Sono dati personali di terzi: non vanno condivisi con strumenti esterni senza le giuste tutele."},
+  {q:"Cosa salvi per ogni cliente?",o:["Un brief con tono, parole da evitare ed esempi approvati","La sua password","Solo il logo","Niente"],e:"Ti fa risparmiare tempo e tiene coerente la voce."}]},
+numeri:{id:"num-decidere",title:"Leggere i dati e decidere",cards:[
+  {h:"Dove si rompe il percorso",t:"Leggi i numeri in ordine. Se le persone non si fermano è un problema di gancio o di pubblico. Se si fermano ma non cliccano (CTR basso) è la creatività o l'offerta. Se cliccano ma non scrivono è la pagina di arrivo.",ex:"CTR al 2% ma zero moduli: controlla la landing, non l'annuncio."},
+  {h:"Il costo per cliente",t:"Non tutti i contatti diventano clienti. Costo per cliente = spesa ÷ clienti acquisiti. Confrontalo con quanto vale un cliente per capire se la campagna conviene.",ex:"400 € spesi, 40 contatti, 5 lavori presi: 80 € a cliente."},
+  {h:"Stagionalità",t:"Nelle settimane del Black Friday e prima di Natale gli spazi pubblicitari costano di più perché investono tutti. Confronta un mese anche con lo stesso mese dell'anno prima, non solo con quello precedente.",ex:"Un CPM che sale a fine novembre non è per forza colpa della campagna."}],
+ quiz:[
+  {q:"Tanti clic e un buon CTR, ma quasi nessun modulo inviato. Dove guardi?",o:["La pagina di arrivo","Il gancio del video","Il pubblico","L'orario"],e:"L'annuncio fa il suo lavoro: il problema è dopo il clic."},
+  {q:"Spendi 400 €, ottieni 40 contatti e 5 diventano clienti. Quanto ti costa ogni cliente?",n:80,u:"€",e:"400 ÷ 5 = 80 € a cliente."},
+  {q:"Un annuncio ha 25.000 impression e 300 clic. Qual è il CTR?",n:1.2,u:"%",tol:0.05,e:"300 ÷ 25.000 × 100 = 1,2%."},
+  {q:"A fine novembre il CPM sale. Qual è la prima ipotesi?",o:["La stagionalità: in quel periodo investono tutti","L'annuncio è stato bloccato","Il pixel non funziona","Il pubblico è troppo piccolo"],e:"Prima di toccare la campagna, guarda il calendario."}]},
+mestiere:{id:"mes-trovare",title:"Trovare i primi clienti",cards:[
+  {h:"Proponi qualcosa di concreto",t:"Un'anteprima del sito o tre post d'esempio fatti per quell'attività convincono più di qualsiasi presentazione. Mostrali dal telefono, di persona.",ex:"“Ho preparato una bozza del vostro sito, ve la faccio vedere in due minuti?”"},
+  {h:"Un portfolio onesto",t:"I lavori non commissionati si presentano come progetti concept o proposte. Appena hai un cliente vero, chiedi il permesso di mostrarlo con i risultati.",ex:"“Proposta di redesign per un colorificio di Lugo” è onesto e mostra comunque il tuo livello."},
+  {h:"Il follow-up",t:"Molti sì arrivano dopo il secondo o il terzo contatto. Dopo una proposta, risenti il cliente dopo qualche giorno con qualcosa di utile, senza insistere.",ex:"“Ho visto che sulla scheda Google mancano gli orari festivi: se volete li sistemo io.”"}],
+ quiz:[
+  {q:"Cosa convince di più un'attività locale?",o:["Un'anteprima concreta fatta apposta per lei","Un PDF con i tuoi servizi","Un messaggio generico","Il tuo profilo LinkedIn"],e:"Il cliente vede subito il risultato, non deve immaginarlo."},
+  {q:"Come presenti nel portfolio un sito fatto senza incarico?",o:["Come progetto concept o proposta","Come lavoro per un cliente","Non lo metti","Senza nessuna indicazione"],e:"L'onestà in una zona piccola è un patrimonio."},
+  {q:"Se un'attività non risponde alla prima proposta è un no definitivo.",vf:false,e:"Spesso è solo mancanza di tempo: un follow-up gentile cambia molto."},
+  {q:"Cosa contiene un buon follow-up?",o:["Qualcosa di utile per il cliente","“Allora? Avete deciso?”","Uno sconto del 50%","Lo stesso messaggio di prima"],e:"Dai valore prima di chiedere."}]}
+};
+
+const CASI = {
+basi:{t:"Gelateria a Bagnacavallo",b:"Una gelateria artigianale di Bagnacavallo vuole farsi conoscere dalle famiglie della zona.",c:"Scrivi il target, una buyer persona in tre righe e la proposta di valore in una frase.",m:"Target: famiglie con bambini tra Bagnacavallo, Lugo e Russi. Persona: Giulia, 38 anni, due figli, cerca un'uscita facile la sera e prodotti senza troppe schifezze; teme code e prezzi alti. Proposta di valore: gelato fatto ogni mattina con latte del territorio e gusti per bambini senza coloranti, a due passi dal parco."},
+strategia:{t:"Estetista a Lugo",b:"Un centro estetico di Lugo ha 600 follower e i giorni feriali mezzi vuoti.",c:"Scrivi un obiettivo SMART, due KPI e tre pilastri di contenuto.",m:"Obiettivo: 25 appuntamenti in più dal martedì al giovedì entro tre mesi. KPI: prenotazioni nei giorni feriali, richieste in DM e WhatsApp. Pilastri: trattamenti spiegati in breve, prima e dopo con consenso, offerte riservate ai giorni feriali."},
+social:{t:"Officina bici a Faenza",b:"Un'officina di biciclette a Faenza vuole più clienti per riparazioni e tagliandi.",c:"Proponi una settimana di contenuti: formati, temi e perché.",m:"Lunedì: Reel di un tagliando accelerato (scoperta). Mercoledì: carosello “5 segnali che la bici va revisionata” (fiducia, salvataggi). Venerdì: Reel prima e dopo di una bici recuperata. Storie tutti i giorni con sondaggi, lavori in corso e invito a prenotare su WhatsApp."},
+copy:{t:"Reel prima e dopo",b:"Hai il video della levigatura di un parquet di 40 anni.",c:"Scrivi gancio, testo a schermo e didascalia con call to action.",m:"Gancio: “Sembrava da buttare.” Testo a schermo: “40 anni di parquet → 3 giorni di lavoro.” Didascalia: “Non serve cambiarlo: si leviga, si ripara, torna come nuovo. Zero polvere in casa e tempi certi. Scrivici PARQUET su WhatsApp e ti mandiamo un preventivo.”"},
+meta:{t:"Agenzia immobiliare",b:"Un'agenzia immobiliare di Imola vuole richieste di valutazione casa con 300 € al mese.",c:"Descrivi obiettivo, struttura, pubblico e due creatività.",m:"Obiettivo Contatti con modulo istantaneo corto (nome, telefono, indirizzo dell'immobile). Una campagna, un gruppo di inserzioni, circa 10 € al giorno. Pubblico: Imola e comuni vicini, età minima 30, Advantage+ audience. Creatività: video dell'agente che spiega in 15 secondi come si valuta una casa; carosello con tre case vendute di recente e tempi di vendita."},
+google:{t:"Ristorante a Cotignola",b:"Un ristorante di Cotignola ha 12 recensioni e una scheda Google incompleta.",c:"Elenca le azioni del primo mese per migliorare la presenza locale.",m:"Completare la scheda: categoria giusta, orari anche festivi, menu, foto vere di piatti e sala, attributi. Rispondere a tutte le recensioni. Cartoncino con QR per recensioni da dare al conto. Un post a settimana sulla scheda. Controllare che nome, indirizzo e telefono siano uguali su sito, Facebook, TheFork e TripAdvisor."},
+siti:{t:"Sito di un idraulico",b:"Un idraulico di Lugo lavora soprattutto su urgenze e piccoli interventi.",c:"Descrivi la home: cosa va sopra la piega, quali sezioni e come arrivano i contatti.",m:"Sopra la piega: “Idraulico a Lugo e dintorni, interventi in giornata”, bottone Chiama e bottone WhatsApp. Sezioni: servizi principali, zone servite, foto di lavori reali, recensioni Google, domande frequenti con prezzi indicativi. Contatti: telefono cliccabile fisso in basso su mobile, modulo corto, pagina di ringraziamento tracciata."},
+ia:{t:"Prompt per una boutique",b:"Devi preparare con l'IA cinque didascalie per una boutique di intimo a Lugo.",c:"Scrivi il prompt completo che useresti.",m:"“Sei un copywriter per una boutique di intimo e costumi a Lugo (RA). Clienti donne 30-55 anni, cercano qualità e consiglio personale. Tono elegante, caldo e complice, mai volgare, niente emoji eccessive. Scrivi 5 didascalie per un Reel sulla nuova collezione: massimo 3 righe, prima riga che incuriosisce, chiusura con invito a prenotare una prova in camerino su WhatsApp. Ecco due post che il cliente ha approvato: […]”"},
+numeri:{t:"Leggere una campagna",b:"Una campagna da 500 € ha avuto 60.000 impression, 480 clic, 12 contatti e 2 clienti.",c:"Calcola CTR, CPC, CPL e costo per cliente, poi di' cosa cambieresti.",m:"CTR 0,8%, CPC circa 1,04 €, CPL circa 41,67 €, costo per cliente 250 €. Il CTR è basso: servono creatività con un gancio più forte. Solo 12 contatti su 480 clic (2,5%): anche la pagina di arrivo va accorciata e resa più chiara, con WhatsApp in evidenza."},
+mestiere:{t:"Il primo messaggio",b:"Hai preparato la bozza del sito per un'attività di Lugo che non ti conosce.",c:"Scrivi il messaggio WhatsApp per proporla.",m:"“Buongiorno, sono Michele, faccio siti e social per le attività della zona. Ho visto che non avete ancora un sito e ne ho preparato una bozza per voi, la potete vedere qui: […]. Se vi piace ci prendiamo dieci minuti per parlarne, passo io in negozio quando vi è comodo.”"}
+};
+
+
+/* unione dati */
+UNITS.forEach(u=>{ if(EXTRA[u.id]) u.lessons.push(EXTRA[u.id]); u.caso=CASI[u.id]; });
+
+/* stato */
+const KEY="cyj-v1";
+let S={done:{},wrong:{},casi:{},t:0};
+try{const r=localStorage.getItem(KEY)||localStorage.getItem("gavetta-v1");if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
+let REMOTE=null, writing=false, pending=false, timer=null, SYNCED=false;
+function save(){
+  S.t=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+  if(REMOTE){clearTimeout(timer);timer=setTimeout(push,1200);}
+}
+async function push(){
+  if(!REMOTE)return;
+  if(writing){pending=true;return;}
+  writing=true;
+  try{await REMOTE.set(JSON.parse(JSON.stringify(S)));}catch(e){if(e&&e.code==="invalid_argument")REMOTE=null;}
+  writing=false;
+  if(pending){pending=false;push();}
+}
+function mergeState(r){
+  const out={done:Object.assign({},r.done||{},S.done),casi:Object.assign({},r.casi||{}),wrong:{},t:Math.max(r.t||0,S.t||0)};
+  Object.entries(S.casi||{}).forEach(([k,v])=>{const o=out.casi[k];if(!o||(v.ts||0)>=(o.ts||0))out.casi[k]=v;});
+  out.wrong=(S.t||0)>=(r.t||0)?Object.assign({},S.wrong):Object.assign({},r.wrong||{});
+  return out;
+}
+
+const LESSONS=[];const QMAP={};
+UNITS.forEach(u=>u.lessons.forEach(l=>{l.unit=u;LESSONS.push(l);l.quiz.forEach((q,i)=>{q.id=l.id+"-"+i;q.lesson=l;QMAP[q.id]=q;});}));
+
+const $=s=>document.querySelector(s);
+const app=$("#app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>String(n).replace(".",",");
+const ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg>';
+const ICON_CASE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17"/></svg>';
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* Claude */
+let SAMPLE=null;
+const SYS="Sei il tutor di CYJ, un'app con cui un ragazzo della Bassa Romagna si forma per lavorare come freelance in siti web, gestione social, advertising e marketing per attività locali. Ha qualche base. Rispondi sempre in italiano, in modo diretto e concreto, con esempi di piccole attività locali. Niente premesse. Se non sei sicuro di un dato che cambia nel tempo (prezzi, funzioni delle piattaforme, norme), dillo.";
+
+async function initClaude(){
+  if(!(window.claude&&typeof window.claude.use==="function"))return;
+  claude.use("sample").then(s=>{SAMPLE=s;if(s){$("#tab-tutor").hidden=false;}route(true);}).catch(()=>{});
+  try{
+    const db=await claude.use("db");const user=await claude.use("user");
+    if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    const ref=db.doc("data/users/"+id+"/progress");
+    const to=setTimeout(()=>{},10000);
+    const snap=await ref.get();clearTimeout(to);
+    if(snap.exists){S=mergeState(snap.data());try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+    REMOTE=ref;SYNCED=true;
+    await push();
+    if(player.hidden)route(true);
+  }catch(e){}
+}
+
+/* viste */
+function setTab(v){
+  document.querySelectorAll("nav.tabs button").forEach(b=>{
+    if(b.dataset.view===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");
+  });
+  const has=Object.keys(S.wrong).some(id=>QMAP[id]);
+  $("#tab-ripasso").innerHTML="Ripasso"+(has?'<span class="badge" aria-label="ci sono domande da ripassare"></span>':"");
+}
+let CUR="";
+function route(soft){
+  const v=(location.hash||"").slice(1);
+  if(soft&&v===CUR&&v==="tutor")return;
+  CUR=v;
+  if(v==="ripasso")viewRipasso();
+  else if(v==="glossario")viewGloss();
+  else if(v==="tutor"&&SAMPLE)viewTutor();
+  else viewPath();
+}
+function go(v){if(location.hash.slice(1)===v)route();else location.hash=v;}
+
+function nextItem(){
+  for(const u of UNITS){
+    for(const l of u.lessons) if(!S.done[l.id]) return {kind:"l",l,u};
+    if(!S.casi[u.id]) return {kind:"c",u};
+  }
+  return null;
+}
+
+function viewPath(){
+  setTab("percorso");
+  const n=nextItem();
+  let h=`<header class="top"><div class="brand">CY<span>J</span></div>${SYNCED?'<div class="sync"><i></i>Sincronizzato</div>':""}</header>`;
+  if(n){
+    const started=Object.keys(S.done).length>0;
+    h+=n.kind==="l"
+      ?`<div class="next"><div class="t"><small>${esc(n.u.title)}</small><strong>${esc(n.l.title)}</strong></div><button class="pill" data-open="${n.l.id}">${started?"Continua":"Inizia"}</button></div>`
+      :`<div class="next"><div class="t"><small>${esc(n.u.title)}</small><strong>Caso pratico: ${esc(n.u.caso.t)}</strong></div><button class="pill" data-caso="${n.u.id}">Affronta</button></div>`;
+  }else{
+    h+=`<div class="next"><div class="t"><small>Percorso completato</small><strong>Ora tienilo allenato</strong></div><button class="pill" data-mix="1">Ripasso</button></div>`;
+  }
+  h+='<div class="units">';
+  UNITS.forEach(u=>{
+    const tot=u.lessons.length+1;
+    const d=u.lessons.filter(l=>S.done[l.id]).length+(S.casi[u.id]?1:0);
+    h+=`<section class="unit" style="--c:${u.c}"><div class="unit-head"><h2>${esc(u.title)}</h2><span class="bar" role="img" aria-label="${d===tot?"completata":"in corso"}"><i style="width:${d/tot*100}%"></i></span></div><div class="lessons">`;
+    u.lessons.forEach(l=>{
+      const done=S.done[l.id];
+      h+=`<button class="lesson-btn ${done?"done":""}" data-open="${l.id}"><span class="dot">${done?ICON_CHECK:ICON_PLAY}</span><b>${esc(l.title)}</b></button>`;
+    });
+    const cs=S.casi[u.id];
+    h+=`<button class="lesson-btn caso ${cs?"done":""}" data-caso="${u.id}"><span class="dot">${ICON_CASE}</span><b>Caso pratico: ${esc(u.caso.t)}</b>${cs&&cs.v?`<span class="score">${cs.v}</span>`:""}</button>`;
+    h+='</div></section>';
+  });
+  h+='</div>';
+  app.innerHTML=h;
+}
+
+function viewRipasso(){
+  setTab("ripasso");
+  const ids=Object.keys(S.wrong).filter(id=>QMAP[id]);
+  const doneQ=LESSONS.filter(l=>S.done[l.id]).flatMap(l=>l.quiz);
+  let h='<h1 class="section-title">Ripasso</h1><div class="stack">';
+  h+=`<button class="pill wide" data-wrong="1" ${ids.length?"":"disabled"}>Ripassa gli errori</button>`;
+  h+=`<button class="pill wide ghost" data-mix="1" ${doneQ.length?"":"disabled"}>Domande a caso dalle lezioni fatte</button>`;
+  if(ids.length){
+    h+='<div class="card stack">';
+    ids.forEach(id=>{const q=QMAP[id];h+=`<div class="rev-q"><small>${esc(q.lesson.title)}</small>${esc(q.q)}</div>`;});
+    h+='</div>';
+  }else h+='<p class="empty">Niente da ripassare.</p>';
+  h+='</div>';
+  app.innerHTML=h;window.scrollTo(0,0);
+}
+
+function viewGloss(){
+  setTab("glossario");
+  app.innerHTML='<h1 class="section-title">Glossario</h1><label for="gq" class="sr">Cerca un termine</label><input id="gq" class="search" type="search" placeholder="ROAS, funnel, pixel…" autocomplete="off"><div class="card" id="glist"></div>';
+  const inp=$("#gq");
+  const draw=()=>{
+    const f=inp.value.trim().toLowerCase();
+    const items=GLOSS.filter(([t,d])=>!f||t.toLowerCase().includes(f)||d.toLowerCase().includes(f));
+    $("#glist").innerHTML=items.length?items.map(([t,d])=>`<div class="term"><h3>${esc(t)}</h3><p>${esc(d)}</p></div>`).join(""):'<p class="empty">Nessun termine trovato.</p>';
+  };
+  inp.addEventListener("input",draw);draw();window.scrollTo(0,0);
+}
+
+/* Tutor */
+let CHAT=[];let chatBusy=false;
+const SUGG=["Come imposto un preventivo per la gestione social?","Che differenza c'è tra Advantage+ e il targeting manuale?","Come convinco un negozio che non crede nei social?","Quali strumenti mi servono per iniziare?"];
+function viewTutor(){
+  setTab("tutor");
+  let h='<h1 class="section-title">Tutor</h1>';
+  if(!CHAT.length) h+=`<div class="sugg">${SUGG.map(s=>`<button class="pill small" data-sugg="${esc(s)}">${esc(s)}</button>`).join("")}</div>`;
+  h+=`<div class="chat" id="chat">${CHAT.map(m=>`<div class="msg ${m.role==="user"?"me":"ai"}">${esc(m.content)}</div>`).join("")}</div>`;
+  h+=`<form class="composer" id="cform"><label for="cin" class="sr">Domanda</label><textarea id="cin" rows="1" placeholder="Chiedi qualcosa sul mestiere…"></textarea><button class="pill" id="csend" ${chatBusy?"disabled":""}>Invia</button></form>`;
+  app.innerHTML=h;
+  const f=$("#cform"),ta=$("#cin");
+  ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();f.requestSubmit();}});
+  f.addEventListener("submit",e=>{e.preventDefault();const t=ta.value.trim();if(t)ask(t);});
+  window.scrollTo(0,document.body.scrollHeight);
+}
+async function ask(text){
+  if(chatBusy||!SAMPLE)return;
+  chatBusy=true;
+  CHAT.push({role:"user",content:text});
+  CHAT.push({role:"assistant",content:"…"});
+  viewTutor();
+  const box=[...document.querySelectorAll(".msg.ai")].pop();
+  const msgs=CHAT.slice(0,-1).map((m,i)=>i===0?{role:m.role,content:SYS+"\n\n"+m.content}:m);
+  try{
+    const r=await SAMPLE(msgs,{cache:false,onText:({text})=>{CHAT[CHAT.length-1].content=text;if(box&&document.body.contains(box))box.textContent=text;}});
+    CHAT[CHAT.length-1].content=r.text;
+  }catch(e){
+    CHAT[CHAT.length-1].content=e&&e.code==="rate_limited"?"Troppe richieste ravvicinate. Riprova tra qualche minuto.":"Non sono riuscito a rispondere. Riprova.";
+    if(e&&e.code==="not_granted"){SAMPLE=null;$("#tab-tutor").hidden=true;}
+  }
+  chatBusy=false;
+  if(CUR==="tutor")viewTutor();
+}
+
+/* player */
+const player=$("#player"),pbody=$("#pbody"),pfoot=$("#pfoot"),pfootin=$("#pfootin"),progbar=$("#progbar"),pscroll=$("#pscroll");
+let P=null;let aborter=null;
+
+function openLesson(id){
+  const l=LESSONS.find(x=>x.id===id);if(!l)return;
+  const steps=l.cards.map(c=>({k:"card",c})).concat(l.quiz.map(q=>({k:"q",q})));
+  start({steps,color:l.unit.c,tag:l.unit.title,lesson:l});
+}
+function openReview(qs,tag){
+  if(!qs.length)return;
+  start({steps:qs.map(q=>({k:"q",q})),color:"#FF4F2E",tag,lesson:null});
+}
+function start(p){
+  P=Object.assign(p,{i:0,errors:0});
+  player.style.setProperty("--c",p.color);
+  player.hidden=false;document.body.style.overflow="hidden";
+  renderStep();
+}
+function closePlayer(){if(aborter)aborter.abort();player.hidden=true;document.body.style.overflow="";P=null;route();}
+
+function footNext(label){
+  pfoot.className="p-foot";
+  pfootin.innerHTML=`<button class="pill wide" id="nx">${label}</button>`;
+  $("#nx").onclick=()=>{if(aborter)aborter.abort();P.i++;renderStep();};
+}
+function renderStep(){
+  progbar.style.width=(P.i/P.steps.length*100)+"%";
+  pfoot.className="p-foot";
+  const s=P.steps[P.i];
+  if(!s)return renderEnd();
+  if(s.k==="card"){
+    const c=s.c;
+    pbody.innerHTML=`<span class="tag">${esc(P.tag)}</span><h2>${esc(c.h)}</h2><p class="txt">${esc(c.t)}</p>${c.ex?`<div class="ex"><b>Esempio</b>${esc(c.ex)}</div>`:""}${SAMPLE?'<div class="explain"><button class="pill small" id="expl">Spiegamelo in un altro modo</button><div id="explout"></div></div>':""}`;
+    footNext("Avanti");
+    if(SAMPLE)$("#expl").onclick=()=>explain(c);
+  }else renderQuestion(s.q);
+  pscroll.scrollTop=0;
+}
+async function explain(c){
+  const btn=$("#expl"),out=$("#explout");
+  btn.disabled=true;
+  out.innerHTML='<div class="ai-box thinking">Sto pensando…</div>';
+  const box=out.firstChild;
+  aborter=new AbortController();
+  try{
+    const r=await SAMPLE(SYS+"\n\nRispiega questo concetto in modo più semplice, in massimo 110 parole, con un esempio diverso preso da un'attività locale (bar, artigiano, negozio, studio). Testo semplice, niente elenchi, niente titoli.\n\nConcetto: "+c.h+"\n"+c.t,{signal:aborter.signal,onText:({text})=>{box.classList.remove("thinking");box.textContent=text;}});
+    box.classList.remove("thinking");box.textContent=r.text;
+  }catch(e){
+    if(e&&e.name==="AbortError")return;
+    box.classList.remove("thinking");
+    box.textContent=e&&e.code==="rate_limited"?"Troppe richieste ravvicinate. Riprova tra qualche minuto.":"Non sono riuscito a spiegarlo ora. Riprova.";
+    if(e&&e.code==="not_granted")SAMPLE=null;
+  }
+  btn.disabled=false;
+}
+function qTag(q){return `<span class="tag" style="background:${q.lesson.unit.c}">${esc(P.lesson?P.tag:q.lesson.title)}</span>`;}
+function renderQuestion(q){
+  if(typeof q.n==="number"){
+    pbody.innerHTML=`${qTag(q)}<p class="q">${esc(q.q)}</p><div class="num"><label for="nin" class="sr">Risposta</label><input id="nin" inputmode="decimal" autocomplete="off"><span>${esc(q.u||"")}</span></div>`;
+    pfootin.innerHTML='<button class="pill wide" id="chk" disabled>Controlla</button>';
+    const inp=$("#nin"),chk=$("#chk");
+    inp.addEventListener("input",()=>{chk.disabled=!inp.value.trim();});
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&inp.value.trim())chk.click();});
+    chk.onclick=()=>{
+      const v=parseFloat(inp.value.replace(/\s/g,"").replace(/\./g,inp.value.includes(",")?"":".").replace(",","."));
+      const ok=!isNaN(v)&&Math.abs(v-q.n)<=(q.tol||0.01);
+      inp.disabled=true;inp.classList.add(ok?"ok":"ko");
+      feedback(q,ok,ok?"":"La risposta giusta è "+fmt(q.n)+(q.u?" "+q.u:"")+". ");
+    };
+    return;
+  }
+  const isVF=typeof q.vf==="boolean";
+  const order=isVF?[{t:"Vero",ok:q.vf===true},{t:"Falso",ok:q.vf===false}]:shuffle(q.o.map((t,i)=>({t,ok:i===0})));
+  pbody.innerHTML=`${qTag(q)}<p class="q">${esc(q.q)}</p><div class="opts ${isVF?"vf":""}">${order.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o.t)}</button>`).join("")}</div>`;
+  pfootin.innerHTML='<button class="pill wide" disabled>Scegli una risposta</button>';
+  pbody.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i,btns=pbody.querySelectorAll(".opt");
+    btns.forEach(x=>x.disabled=true);
+    const ci=order.findIndex(o=>o.ok);
+    btns[ci].classList.add("sel-ok");
+    const ok=order[i].ok;
+    if(!ok)btns[i].classList.add("sel-ko");
+    feedback(q,ok,"");
+  });
+}
+function feedback(q,ok,pre){
+  if(!ok){P.errors++;S.wrong[q.id]=1;}
+  else if(!P.lesson)delete S.wrong[q.id];
+  save();
+  pfoot.className="p-foot "+(ok?"ok":"ko");
+  pfootin.innerHTML=`<div class="fb"><strong>${ok?"Giusto":"Non proprio"}</strong><p>${esc(pre)}${esc(q.e)}</p></div><button class="pill wide" id="nx">Continua</button>`;
+  $("#nx").onclick=()=>{P.i++;renderStep();};
+  $("#nx").focus({preventScroll:true});
+}
+function renderEnd(){
+  progbar.style.width="100%";
+  if(P.lesson){S.done[P.lesson.id]=1;save();}
+  const perfect=P.errors===0;
+  pbody.innerHTML=`<div class="endbox"><div class="big">${ICON_CHECK}</div><h2>${P.lesson?"Lezione completata":"Ripasso finito"}</h2><p>${perfect?"Tutto giusto.":"Le domande sbagliate le ritrovi in Ripasso."}</p></div>`;
+  let btns="";
+  if(P.lesson){
+    const n=nextItem();
+    if(n&&n.kind==="l")btns+=`<button class="pill wide" id="nl">Prossima: ${esc(n.l.title)}</button>`;
+    else if(n&&n.kind==="c")btns+=`<button class="pill wide" id="nl">Caso pratico: ${esc(n.u.caso.t)}</button>`;
+    pfootin.innerHTML=btns+`<button class="pill wide ${btns?"ghost":""}" id="bk">Torna al percorso</button>`;
+    if(n)$("#nl").onclick=()=>n.kind==="l"?openLesson(n.l.id):openCaso(n.u.id);
+  }else pfootin.innerHTML='<button class="pill wide" id="bk">Torna al ripasso</button>';
+  const back=P.lesson?"percorso":"ripasso";
+  $("#bk").onclick=()=>{closePlayer();go(back);};
+}
+
+/* caso pratico */
+function openCaso(uid){
+  const u=UNITS.find(x=>x.id===uid);if(!u)return;
+  P={caso:u,i:0,steps:[1]};
+  player.style.setProperty("--c",u.c);
+  player.hidden=false;document.body.style.overflow="hidden";
+  progbar.style.width="0%";
+  const prev=S.casi[uid];
+  pbody.innerHTML=`<span class="tag">${esc(u.title)}</span><h2>${esc(u.caso.t)}</h2><p class="brief">${esc(u.caso.b)}</p><p class="task">${esc(u.caso.c)}</p><label for="ans" class="sr">La tua risposta</label><textarea id="ans" class="answer" placeholder="Scrivi qui…">${esc(prev&&prev.a?prev.a:"")}</textarea><div id="evalout"></div>`;
+  pfoot.className="p-foot";
+  pfootin.innerHTML=(SAMPLE?'<button class="pill wide" id="valuta" disabled>Fammi valutare</button>':"")+`<button class="pill wide ${SAMPLE?"ghost":""}" id="sol" disabled>Confronta con una soluzione</button>`;
+  const ta=$("#ans"),va=$("#valuta"),so=$("#sol");
+  const upd=()=>{const ok=ta.value.trim().length>=20;if(va)va.disabled=!ok;so.disabled=!ok;};
+  ta.addEventListener("input",upd);upd();
+  if(prev&&prev.r)showEval(prev.r,u);
+  so.onclick=()=>{
+    keepCaso(uid,ta.value,null);
+    const out=$("#evalout");
+    if(!out.querySelector(".model"))out.insertAdjacentHTML("beforeend",`<div class="eval"><div class="model"><h3>Una soluzione possibile</h3><p>${esc(u.caso.m)}</p></div></div>`);
+    progbar.style.width="100%";
+    out.lastElementChild.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+  if(va)va.onclick=()=>evaluate(u,ta.value);
+  pscroll.scrollTop=0;
+}
+function keepCaso(uid,a,r){
+  const prev=S.casi[uid]||{};
+  S.casi[uid]={a:a.slice(0,4000),v:r?r.voto:prev.v||0,r:r||prev.r||null,ts:Date.now()};
+  save();
+}
+async function evaluate(u,answer){
+  const va=$("#valuta"),out=$("#evalout");
+  va.disabled=true;va.textContent="Sto valutando…";
+  out.innerHTML='<div class="eval"><p class="thinking">Sto leggendo la tua risposta…</p></div>';
+  aborter=new AbortController();
+  const prompt=SYS+`\n\nValuta la risposta a questo caso pratico come farebbe un responsabile marketing esigente ma costruttivo. Giudica concretezza, correttezza tecnica e utilità reale per il cliente.\n\nCaso: ${u.caso.b}\nCompito: ${u.caso.c}\n\nRisposta dello studente:\n"""${answer.slice(0,4000)}"""\n\nRispondi SOLO con un oggetto JSON con queste chiavi: "voto" (intero da 1 a 10), "bene" (array di massimo 3 frasi brevi su cosa funziona), "migliorare" (array di massimo 3 frasi brevi e concrete su cosa correggere), "versione" (stringa: la risposta riscritta come la farebbe un professionista, massimo 120 parole).`;
+  try{
+    const r=await SAMPLE.json(prompt,{signal:aborter.signal,modelTier:"default"});
+    const clean={voto:Math.max(1,Math.min(10,Math.round(+r.voto||0)))||1,bene:(Array.isArray(r.bene)?r.bene:[]).slice(0,3).map(String),migliorare:(Array.isArray(r.migliorare)?r.migliorare:[]).slice(0,3).map(String),versione:String(r.versione||"")};
+    keepCaso(u.id,answer,clean);
+    if(!P||P.caso!==u)return;
+    showEval(clean,u);
+    progbar.style.width="100%";
+    out.firstElementChild.scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(e){
+    if(e&&e.name==="AbortError")return;
+    out.innerHTML=`<div class="eval"><p>${e&&e.code==="rate_limited"?"Troppe richieste ravvicinate. Riprova tra qualche minuto.":"Non sono riuscito a valutarla ora. Riprova."}</p></div>`;
+    if(e&&e.code==="not_granted"){SAMPLE=null;va.remove();$("#tab-tutor").hidden=true;}
+  }
+  if(document.body.contains(va)){va.disabled=false;va.textContent="Fammi rivalutare";}
+}
+function showEval(r,u){
+  const li=a=>a.map(x=>`<li>${esc(x)}</li>`).join("");
+  $("#evalout").innerHTML=`<div class="eval"><div class="vote"><b>${r.voto}</b><span>/10</span></div>${r.bene.length?`<div><h3>Cosa funziona</h3><ul>${li(r.bene)}</ul></div>`:""}${r.migliorare.length?`<div><h3>Cosa migliorare</h3><ul>${li(r.migliorare)}</ul></div>`:""}${r.versione?`<div class="model"><h3>Come la scriverebbe un professionista</h3><p>${esc(r.versione)}</p></div>`:""}</div>`;
+  const va=$("#valuta");if(va)va.textContent="Fammi rivalutare";
+}
+
+/* eventi */
+document.addEventListener("click",e=>{
+  const o=e.target.closest("[data-open]");if(o){openLesson(o.dataset.open);return;}
+  const c=e.target.closest("[data-caso]");if(c){openCaso(c.dataset.caso);return;}
+  const sg=e.target.closest("[data-sugg]");if(sg){ask(sg.dataset.sugg);return;}
+  if(e.target.closest("[data-wrong]")){openReview(shuffle(Object.keys(S.wrong).filter(id=>QMAP[id]).map(id=>QMAP[id])),"Errori");return;}
+  if(e.target.closest("[data-mix]")){const pool=LESSONS.filter(l=>S.done[l.id]).flatMap(l=>l.quiz);openReview(shuffle(pool).slice(0,10),"Ripasso");return;}
+  const t=e.target.closest("nav.tabs button");if(t){go(t.dataset.view);}
+});
+$("#close").onclick=closePlayer;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!player.hidden)closePlayer();});
+window.addEventListener("hashchange",()=>{if(player.hidden)route();});
+route();
+initClaude();
+</script>
+</body>
+</html>
