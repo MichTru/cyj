@@ -612,8 +612,53 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 let SAMPLE=null;
 const SYS="Sei il tutor di CYJ, un'app con cui un ragazzo della Bassa Romagna si forma per lavorare come freelance in siti web, gestione social, advertising e marketing per attività locali. Ha qualche base. Rispondi sempre in italiano, in modo diretto e concreto, con esempi di piccole attività locali. Niente premesse. Se non sei sicuro di un dato che cambia nel tempo (prezzi, funzioni delle piattaforme, norme), dillo.";
 
+const KEYK="cyj-key";let BYOK=false;
+function getKey(){try{return localStorage.getItem(KEYK)||"";}catch(e){return "";}}
+function makeApi(key){
+  const call=async(input,opts={})=>{
+    const messages=typeof input==="string"?[{role:"user",content:input}]:input;
+    let res;
+    try{
+      res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal:opts.signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-5-5",max_tokens:1500,stream:true,messages})});
+    }catch(e){if(e&&e.name==="AbortError")throw e;throw {code:"network"};}
+    if(!res.ok)throw {code:res.status===401||res.status===403?"bad_key":res.status===429||res.status===529?"rate_limited":res.status===400?"credit":"error"};
+    const rd=res.body.getReader(),dec=new TextDecoder();let buf="",text="";
+    for(;;){
+      const {value,done}=await rd.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split("\n");buf=lines.pop();
+      for(const ln of lines){
+        if(!ln.startsWith("data:"))continue;
+        let ev;try{ev=JSON.parse(ln.slice(5));}catch(e){continue;}
+        if(ev.type==="error")throw {code:"error"};
+        if(ev.type==="content_block_delta"&&ev.delta&&ev.delta.type==="text_delta"){text+=ev.delta.text;if(opts.onText)opts.onText({text,delta:ev.delta.text});}
+      }
+    }
+    return {text,truncated:false};
+  };
+  call.json=async(input,opts={})=>{
+    const r=await call(input,opts);const s=r.text,a=s.indexOf("{"),b=s.lastIndexOf("}");
+    if(a<0||b<a)throw {code:"error"};
+    return JSON.parse(s.slice(a,b+1));
+  };
+  return call;
+}
+function setupByok(){
+  BYOK=true;
+  const k=getKey();
+  SAMPLE=k?makeApi(k):null;
+  $("#tab-tutor").hidden=!SAMPLE;
+}
+function errMsg(e,what){
+  const c=e&&e.code;
+  if(c==="rate_limited")return "Troppe richieste ravvicinate. Riprova tra qualche minuto.";
+  if(c==="bad_key")return "La chiave API non è valida. Controllala nelle impostazioni.";
+  if(c==="credit")return "Richiesta rifiutata: controlla di avere credito sul tuo account Anthropic.";
+  if(c==="network")return "Connessione assente. Riprova quando sei online.";
+  return "Non sono riuscito a "+what+" ora. Riprova.";
+}
 async function initClaude(){
-  if(!(window.claude&&typeof window.claude.use==="function"))return;
+  if(!(window.claude&&typeof window.claude.use==="function")){setupByok();route(true);return;}
   claude.use("sample").then(s=>{SAMPLE=s;if(s){$("#tab-tutor").hidden=false;}route(true);}).catch(()=>{});
   try{
     const db=await claude.use("db");const user=await claude.use("user");
@@ -645,6 +690,7 @@ function route(soft){
   if(v==="ripasso")viewRipasso();
   else if(v==="glossario")viewGloss();
   else if(v==="tutor"&&SAMPLE)viewTutor();
+  else if(v==="impostazioni"&&BYOK)viewSettings();
   else viewPath();
 }
 function go(v){if(location.hash.slice(1)===v)route();else location.hash=v;}
@@ -660,7 +706,7 @@ function nextItem(){
 function viewPath(){
   setTab("percorso");
   const n=nextItem();
-  let h=`<header class="top"><div class="brand">CY<span>J</span></div>${SYNCED?'<div class="sync"><i></i>Sincronizzato</div>':""}</header>`;
+  let h=`<header class="top"><div class="brand">CY<span>J</span></div>${SYNCED?'<div class="sync"><i></i>Sincronizzato</div>':""}${BYOK?`<button class="pill small" data-view-go="impostazioni">${SAMPLE?"IA attiva":"Attiva IA"}</button>`:""}</header>`;
   if(n){
     const started=Object.keys(S.done).length>0;
     h+=n.kind==="l"
@@ -714,6 +760,20 @@ function viewGloss(){
   inp.addEventListener("input",draw);draw();window.scrollTo(0,0);
 }
 
+function viewSettings(){
+  setTab("");
+  const k=getKey();
+  app.innerHTML=`<h1 class="section-title">Intelligenza artificiale</h1><div class="card stack"><p style="margin:0">Tutor, valutazione dei casi e spiegazioni usano la tua chiave API di Anthropic, salvata solo in questo browser.</p><p style="margin:0"><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">console.anthropic.com/settings/keys</a></p><label for="kin" class="sr">Chiave API</label><input id="kin" class="search" type="password" autocomplete="off" placeholder="sk-ant-…" value="${esc(k)}" style="margin:0"><button class="pill wide" id="ksave">Salva</button>${k?'<button class="pill wide ghost" id="kdel">Rimuovi chiave</button>':""}<p id="kmsg" style="margin:0;color:var(--muted)" aria-live="polite"></p></div>`;
+  $("#ksave").onclick=async()=>{
+    const v=$("#kin").value.trim();if(!v)return;
+    const btn=$("#ksave"),msg=$("#kmsg");btn.disabled=true;msg.textContent="Controllo la chiave…";
+    try{await makeApi(v)("Rispondi solo: ok");try{localStorage.setItem(KEYK,v);}catch(e){}setupByok();msg.textContent="Chiave salvata. L'IA è attiva.";setTimeout(()=>go("percorso"),900);}
+    catch(e){msg.textContent=errMsg(e,"verificare la chiave");}
+    btn.disabled=false;
+  };
+  const d=$("#kdel");if(d)d.onclick=()=>{try{localStorage.removeItem(KEYK);}catch(e){}setupByok();viewSettings();};
+}
+
 /* Tutor */
 let CHAT=[];let chatBusy=false;
 const SUGG=["Come imposto un preventivo per la gestione social?","Che differenza c'è tra Advantage+ e il targeting manuale?","Come convinco un negozio che non crede nei social?","Quali strumenti mi servono per iniziare?"];
@@ -741,7 +801,7 @@ async function ask(text){
     const r=await SAMPLE(msgs,{cache:false,onText:({text})=>{CHAT[CHAT.length-1].content=text;if(box&&document.body.contains(box))box.textContent=text;}});
     CHAT[CHAT.length-1].content=r.text;
   }catch(e){
-    CHAT[CHAT.length-1].content=e&&e.code==="rate_limited"?"Troppe richieste ravvicinate. Riprova tra qualche minuto.":"Non sono riuscito a rispondere. Riprova.";
+    CHAT[CHAT.length-1].content=errMsg(e,"rispondere");
     if(e&&e.code==="not_granted"){SAMPLE=null;$("#tab-tutor").hidden=true;}
   }
   chatBusy=false;
@@ -799,7 +859,7 @@ async function explain(c){
   }catch(e){
     if(e&&e.name==="AbortError")return;
     box.classList.remove("thinking");
-    box.textContent=e&&e.code==="rate_limited"?"Troppe richieste ravvicinate. Riprova tra qualche minuto.":"Non sono riuscito a spiegarlo ora. Riprova.";
+    box.textContent=errMsg(e,"spiegarlo");
     if(e&&e.code==="not_granted")SAMPLE=null;
   }
   btn.disabled=false;
@@ -906,7 +966,7 @@ async function evaluate(u,answer){
     out.firstElementChild.scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){
     if(e&&e.name==="AbortError")return;
-    out.innerHTML=`<div class="eval"><p>${e&&e.code==="rate_limited"?"Troppe richieste ravvicinate. Riprova tra qualche minuto.":"Non sono riuscito a valutarla ora. Riprova."}</p></div>`;
+    out.innerHTML=`<div class="eval"><p>${esc(errMsg(e,"valutarla"))}</p></div>`;
     if(e&&e.code==="not_granted"){SAMPLE=null;va.remove();$("#tab-tutor").hidden=true;}
   }
   if(document.body.contains(va)){va.disabled=false;va.textContent="Fammi rivalutare";}
@@ -924,6 +984,7 @@ document.addEventListener("click",e=>{
   const sg=e.target.closest("[data-sugg]");if(sg){ask(sg.dataset.sugg);return;}
   if(e.target.closest("[data-wrong]")){openReview(shuffle(Object.keys(S.wrong).filter(id=>QMAP[id]).map(id=>QMAP[id])),"Errori");return;}
   if(e.target.closest("[data-mix]")){const pool=LESSONS.filter(l=>S.done[l.id]).flatMap(l=>l.quiz);openReview(shuffle(pool).slice(0,10),"Ripasso");return;}
+  const g=e.target.closest("[data-view-go]");if(g){go(g.dataset.viewGo);return;}
   const t=e.target.closest("nav.tabs button");if(t){go(t.dataset.view);}
 });
 $("#close").onclick=closePlayer;
